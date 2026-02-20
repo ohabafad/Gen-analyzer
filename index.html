@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generation & Lifestyle Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07091a;
+  --bg2: #0d1130;
+  --bg3: #141a3c;
+  --card: rgba(20,26,60,0.85);
+  --card-border: rgba(0,229,204,0.15);
+  --text: #e8eaf6;
+  --text2: #8fa0c8;
+  --accent: #00e5cc;
+  --accent2: #ffb347;
+  --accent3: #a78bfa;
+  --glow: rgba(0,229,204,0.25);
+  --danger: #ff6b6b;
+  --success: #51cf66;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', 'Noto Sans Bengali', sans-serif;
+  --radius: 20px;
+  --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg: #f0f4ff;
+  --bg2: #e4eaff;
+  --bg3: #dce4ff;
+  --card: rgba(255,255,255,0.9);
+  --card-border: rgba(0,160,140,0.2);
+  --text: #1a2040;
+  --text2: #4a5580;
+  --glow: rgba(0,200,180,0.15);
+  --accent: #00a88c;
+  --accent2: #e08a00;
+  --accent3: #7c3aed;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  transition:background var(--transition),color var(--transition);
+}
+/* ANIMATED BACKGROUND */
+.bg-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  z-index:0;pointer-events:none;overflow:hidden;
+}
+.orb{
+  position:absolute;border-radius:50%;filter:blur(80px);opacity:0.35;
+  animation:drift 15s ease-in-out infinite alternate;
+}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,#00e5cc30,transparent);top:-100px;left:-100px;animation-delay:0s}
+.orb2{width:400px;height:400px;background:radial-gradient(circle,#a78bfa30,transparent);bottom:-50px;right:-50px;animation-delay:-7s}
+.orb3{width:300px;height:300px;background:radial-gradient(circle,#ffb34720,transparent);top:40%;left:40%;animation-delay:-3s}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(40px,30px) scale(1.1)}}
+[data-theme="light"] .orb{opacity:0.2}
+
+/* GRID NOISE TEXTURE */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:0.5;
+}
+
+/* LAYOUT */
+.app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;position:sticky;top:0;z-index:100;
+  background:var(--bg);border-bottom:1px solid var(--card-border);
+  backdrop-filter:blur(12px);
+  transition:background var(--transition);
+}
+.logo{
+  font-family:var(--font-head);font-weight:800;font-size:1.1rem;
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.controls{display:flex;gap:10px;align-items:center}
+.btn-icon{
+  background:var(--card);border:1px solid var(--card-border);
+  color:var(--text2);border-radius:12px;padding:8px 14px;
+  cursor:pointer;font-size:0.85rem;font-family:var(--font-body);
+  transition:all var(--transition);font-weight:500;
+}
+.btn-icon:hover{color:var(--accent);border-color:var(--accent);background:var(--glow)}
+.btn-icon.active{color:var(--accent);border-color:var(--accent)}
+.main{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px 16px 40px}
+
+/* SCREENS */
+.screen{width:100%;max-width:760px;animation:fadeIn 0.5s ease both}
+.screen.hidden{display:none}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* HERO */
+.hero{text-align:center;padding:60px 20px 40px}
+.hero-badge{
+  display:inline-block;padding:6px 18px;border-radius:999px;
+  border:1px solid var(--accent);color:var(--accent);
+  font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  margin-bottom:28px;background:var(--glow);
+}
+.hero h1{
+  font-family:var(--font-head);font-size:clamp(2rem,5vw,3.5rem);font-weight:800;
+  line-height:1.1;margin-bottom:20px;
+  background:linear-gradient(135deg,var(--text) 0%,var(--accent) 60%,var(--accent3) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{color:var(--text2);font-size:1.05rem;line-height:1.7;max-width:520px;margin:0 auto 36px}
+.hero-stats{
+  display:flex;gap:24px;justify-content:center;flex-wrap:wrap;
+  margin-bottom:40px;
+}
+.stat{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:16px;padding:16px 24px;text-align:center;
+  backdrop-filter:blur(10px);
+}
+.stat-num{font-family:var(--font-head);font-size:1.6rem;font-weight:800;color:var(--accent)}
+.stat-label{font-size:0.78rem;color:var(--text2);margin-top:2px}
+.btn-start{
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  color:#07091a;border:none;border-radius:16px;padding:16px 48px;
+  font-family:var(--font-head);font-size:1.05rem;font-weight:700;
+  cursor:pointer;transition:all var(--transition);
+  box-shadow:0 0 40px var(--glow);
+}
+.btn-start:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 0 60px var(--glow)}
+.feature-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;
+  margin-top:48px;
+}
+.feature-card{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius);padding:20px 16px;text-align:center;
+  backdrop-filter:blur(10px);transition:all var(--transition);
+}
+.feature-card:hover{border-color:var(--accent);transform:translateY(-3px)}
+.feature-icon{font-size:1.8rem;margin-bottom:10px}
+.feature-title{font-family:var(--font-head);font-size:0.85rem;font-weight:700;margin-bottom:4px}
+.feature-desc{font-size:0.75rem;color:var(--text2)}
+
+/* QUIZ */
+.quiz-header{margin-bottom:24px}
+.progress-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.progress-label{font-size:0.82rem;color:var(--text2)}
+.progress-num{font-family:var(--font-head);font-size:0.9rem;font-weight:700;color:var(--accent)}
+.progress-bar{
+  height:6px;background:var(--bg3);border-radius:999px;overflow:hidden;
+  position:relative;
+}
+.progress-fill{
+  height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));
+  border-radius:999px;transition:width 0.5s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+}
+.progress-fill::after{
+  content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:10px;height:10px;border-radius:50%;background:var(--accent3);
+  box-shadow:0 0 10px var(--accent3);
+}
+.category-tag{
+  display:inline-block;padding:4px 12px;border-radius:999px;
+  font-size:0.72rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;
+  margin-top:8px;
+}
+.q-card{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius);padding:32px;backdrop-filter:blur(12px);
+  margin-bottom:20px;
+}
+.q-number{
+  font-size:0.78rem;color:var(--text2);font-weight:500;margin-bottom:12px;
+}
+.q-text{
+  font-family:var(--font-head);font-size:1.2rem;font-weight:700;
+  line-height:1.4;margin-bottom:28px;
+}
+.options{display:flex;flex-direction:column;gap:12px}
+.opt{
+  background:var(--bg2);border:1.5px solid var(--card-border);
+  border-radius:14px;padding:16px 20px;cursor:pointer;
+  transition:all var(--transition);display:flex;align-items:center;gap:14px;
+  font-size:0.92rem;line-height:1.4;
+}
+.opt:hover{border-color:var(--accent);background:var(--glow);color:var(--accent)}
+.opt.selected{border-color:var(--accent);background:var(--glow);color:var(--accent)}
+.opt-letter{
+  min-width:30px;height:30px;border-radius:8px;
+  background:var(--bg3);display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-weight:700;font-size:0.8rem;color:var(--text2);
+  transition:all var(--transition);
+}
+.opt.selected .opt-letter,.opt:hover .opt-letter{background:var(--accent);color:#07091a}
+.opt.selected{border-color:var(--accent);background:linear-gradient(135deg,rgba(0,229,204,0.08),rgba(167,139,250,0.08));box-shadow:0 0 0 1px var(--accent) inset;}
+.opt.selected .opt-letter{font-size:1rem;font-weight:900;}
+.quiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px}
+.btn-nav{
+  background:var(--card);border:1.5px solid var(--card-border);
+  color:var(--text);border-radius:14px;padding:12px 28px;
+  font-family:var(--font-head);font-size:0.9rem;font-weight:700;cursor:pointer;
+  transition:all var(--transition);
+}
+.btn-nav.primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  color:#07091a;border:none;box-shadow:0 0 20px var(--glow);
+}
+.btn-nav:hover:not(:disabled){transform:translateY(-1px);border-color:var(--accent)}
+.btn-nav.primary:hover{box-shadow:0 0 35px var(--glow)}
+.btn-nav:disabled{opacity:0.4;cursor:not-allowed}
+
+/* LOADING */
+.loading-screen{text-align:center;padding:80px 20px}
+.dna-loader{
+  width:80px;height:80px;margin:0 auto 32px;
+  border-radius:50%;border:3px solid var(--bg3);
+  border-top-color:var(--accent);border-right-color:var(--accent3);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-family:var(--font-head);font-size:1.3rem;font-weight:700;margin-bottom:8px}
+.loading-sub{color:var(--text2);font-size:0.9rem}
+.loading-steps{margin-top:32px;text-align:left;max-width:300px;margin-left:auto;margin-right:auto}
+.loading-step{
+  display:flex;align-items:center;gap:12px;padding:10px 0;
+  font-size:0.85rem;color:var(--text2);opacity:0;animation:stepIn 0.4s ease forwards;
+}
+.loading-step .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+@keyframes stepIn{to{opacity:1}}
+
+/* RESULTS */
+.results-header{text-align:center;padding:40px 20px 20px}
+.results-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 20px;border-radius:999px;
+  border:1px solid var(--accent2);color:var(--accent2);
+  font-size:0.8rem;font-weight:600;margin-bottom:20px;background:rgba(255,179,71,0.08);
+}
+.results-header h2{
+  font-family:var(--font-head);font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;
+  margin-bottom:10px;
+  background:linear-gradient(135deg,var(--text),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.results-header p{color:var(--text2);font-size:0.95rem}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.r-card{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius);padding:24px;backdrop-filter:blur(12px);
+  position:relative;overflow:hidden;
+}
+.r-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--accent3));
+}
+.r-card.full{grid-column:1/-1}
+.r-card.amber::before{background:linear-gradient(90deg,var(--accent2),#ff6b6b)}
+.r-card.purple::before{background:linear-gradient(90deg,var(--accent3),#00e5cc)}
+.r-label{font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:8px}
+.r-main{font-family:var(--font-head);font-size:1.4rem;font-weight:800;line-height:1.2;margin-bottom:6px}
+.r-sub{font-size:0.82rem;color:var(--text2);line-height:1.5}
+.r-emoji{font-size:2.5rem;margin-bottom:12px;display:block}
+.pct-ring{position:relative;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px}
+.pct-ring svg{transform:rotate(-90deg)}
+.pct-ring .pct-num{
+  position:absolute;font-family:var(--font-head);font-size:1.4rem;font-weight:800;color:var(--accent);
+}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.tag{
+  padding:5px 12px;border-radius:999px;font-size:0.75rem;font-weight:600;
+  background:var(--bg3);border:1px solid var(--card-border);
+}
+.tag.strength{border-color:var(--success);color:var(--success);background:rgba(81,207,102,0.08)}
+.tag.weakness{border-color:var(--danger);color:var(--danger);background:rgba(255,107,107,0.08)}
+.tip-list{list-style:none;margin-top:12px}
+.tip-list li{
+  display:flex;align-items:flex-start;gap:10px;padding:10px 0;
+  border-bottom:1px solid var(--card-border);font-size:0.87rem;line-height:1.5;
+}
+.tip-list li:last-child{border-bottom:none}
+.tip-num{
+  min-width:24px;height:24px;border-radius:6px;
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  color:#07091a;font-family:var(--font-head);font-size:0.75rem;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.roadmap-section{margin-top:4px}
+.roadmap-phase{
+  background:var(--bg2);border-radius:14px;padding:16px;margin-bottom:12px;
+  border-left:3px solid var(--accent);
+}
+.roadmap-phase.phase2{border-color:var(--accent2)}
+.roadmap-phase.phase3{border-color:var(--accent3)}
+.phase-label{font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+.phase-title{font-family:var(--font-head);font-weight:700;font-size:0.95rem;margin-bottom:8px}
+.phase-items{list-style:none}
+.phase-items li{font-size:0.82rem;color:var(--text2);padding:3px 0;display:flex;align-items:flex-start;gap:6px}
+.phase-items li::before{content:'→';color:var(--accent);flex-shrink:0}
+.share-bar{
+  display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+  margin-top:32px;padding:24px;
+}
+.btn-share{
+  padding:12px 28px;border-radius:14px;font-family:var(--font-head);
+  font-size:0.9rem;font-weight:700;cursor:pointer;transition:all var(--transition);border:none;
+}
+.btn-share.primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent3));color:#07091a;
+  box-shadow:0 0 30px var(--glow);
+}
+.btn-share.secondary{
+  background:var(--card);border:1.5px solid var(--card-border);color:var(--text);
+}
+.btn-share:hover{transform:translateY(-2px)}
+.motivational{
+  background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border:1px solid var(--card-border);border-radius:var(--radius);
+  padding:32px;text-align:center;margin-top:16px;
+  position:relative;overflow:hidden;
+}
+.motivational::before{
+  content:'✦';position:absolute;font-size:8rem;opacity:0.03;
+  top:-20px;right:-20px;line-height:1;
+}
+.motivational-quote{
+  font-family:var(--font-head);font-size:1.15rem;font-weight:700;
+  line-height:1.5;margin-bottom:8px;
+}
+.motivational-sub{font-size:0.85rem;color:var(--text2)}
+
+/* Era Match Card */
+.era-match-card{
+  background:linear-gradient(135deg,var(--bg2) 0%,var(--bg3) 100%);
+  border:1.5px solid var(--accent2);
+  border-radius:var(--radius);padding:28px;
+  position:relative;overflow:hidden;grid-column:1/-1;
+  backdrop-filter:blur(12px);
+}
+.era-match-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent2),#ff6b6b,var(--accent3));
+}
+.era-pin{
+  display:inline-flex;align-items:center;gap:10px;
+  background:rgba(255,179,71,0.1);border:1px solid rgba(255,179,71,0.35);
+  border-radius:12px;padding:10px 18px;margin-bottom:16px;
+}
+.era-pin-dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--accent2);box-shadow:0 0 10px var(--accent2);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0.7}}
+.era-city{
+  font-family:var(--font-head);font-size:1.6rem;font-weight:800;
+  color:var(--accent2);letter-spacing:-0.02em;margin-bottom:4px;
+}
+.era-year-tag{
+  display:inline-block;background:var(--accent2);color:#07091a;
+  border-radius:6px;padding:3px 10px;font-family:var(--font-head);
+  font-size:0.85rem;font-weight:800;margin-left:10px;
+  vertical-align:middle;
+}
+.era-vibe{
+  font-size:0.88rem;color:var(--text2);line-height:1.6;margin:10px 0 16px;
+  border-left:2px solid var(--accent2);padding-left:12px;
+}
+.era-why{
+  background:var(--bg);border-radius:12px;padding:16px;
+  border:1px solid var(--card-border);
+}
+.era-why-title{
+  font-family:var(--font-head);font-size:0.72rem;font-weight:700;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--accent2);margin-bottom:10px;
+}
+.era-reason{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:0.82rem;color:var(--text2);line-height:1.5;margin-bottom:6px;
+}
+.era-reason:last-child{margin-bottom:0}
+.era-reason-dot{
+  min-width:6px;height:6px;border-radius:50%;
+  background:var(--accent2);margin-top:6px;flex-shrink:0;
+}
+@media(max-width:600px){.era-match-card{grid-column:1}}
+.cat-tech{background:rgba(0,229,204,0.1);color:var(--accent);border:1px solid rgba(0,229,204,0.3)}
+.cat-goals{background:rgba(255,179,71,0.1);color:var(--accent2);border:1px solid rgba(255,179,71,0.3)}
+.cat-lifestyle{background:rgba(167,139,250,0.1);color:var(--accent3);border:1px solid rgba(167,139,250,0.3)}
+.cat-discipline{background:rgba(81,207,102,0.1);color:var(--success);border:1px solid rgba(81,207,102,0.3)}
+.cat-social{background:rgba(255,107,107,0.1);color:var(--danger);border:1px solid rgba(255,107,107,0.3)}
+.cat-learning{background:rgba(0,229,204,0.1);color:var(--accent);border:1px solid rgba(0,229,204,0.3)}
+.cat-risk{background:rgba(255,179,71,0.1);color:var(--accent2);border:1px solid rgba(255,179,71,0.3)}
+.cat-health{background:rgba(81,207,102,0.1);color:var(--success);border:1px solid rgba(81,207,102,0.3)}
+.cat-money{background:rgba(255,179,71,0.1);color:var(--accent2);border:1px solid rgba(255,179,71,0.3)}
+.cat-global{background:rgba(167,139,250,0.1);color:var(--accent3);border:1px solid rgba(167,139,250,0.3)}
+.cat-emotional{background:rgba(255,107,107,0.1);color:var(--danger);border:1px solid rgba(255,107,107,0.3)}
+.cat-decision{background:rgba(0,229,204,0.1);color:var(--accent);border:1px solid rgba(0,229,204,0.3)}
+
+@media(max-width:600px){
+  .results-grid{grid-template-columns:1fr}
+  .r-card.full{grid-column:1}
+  .hero-stats{gap:12px}
+  .stat{padding:12px 16px}
+  .q-card{padding:20px}
+  .q-text{font-size:1rem}
+}
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--accent);color:#07091a;padding:12px 24px;
+  border-radius:12px;font-family:var(--font-head);font-weight:700;font-size:0.9rem;
+  z-index:999;transition:transform 0.3s ease;pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="bg-canvas">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">⚡ GenAnalyzer</div>
+    <div class="controls">
+      <button class="btn-icon" id="langBtn" onclick="toggleLang()">বাংলা</button>
+      <button class="btn-icon" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
+    </div>
+  </div>
+  <div class="main">
+
+    <!-- HERO SCREEN -->
+    <div class="screen" id="screen-hero">
+      <div class="hero">
+        <div class="hero-badge" id="h-badge">🧬 Psychological Intelligence Assessment</div>
+        <h1 id="h-title">Discover Your<br>Generation Mindset</h1>
+        <p id="h-desc">A deep 30-question psychological quiz that reveals your generation type, global lifestyle match, personality profile, and a personalized AI growth roadmap.</p>
+        <div class="hero-stats">
+          <div class="stat"><div class="stat-num">30</div><div class="stat-label" id="s1">Questions</div></div>
+          <div class="stat"><div class="stat-num">6+</div><div class="stat-label" id="s2">Profiles</div></div>
+          <div class="stat"><div class="stat-num">~8</div><div class="stat-label" id="s3">Minutes</div></div>
+        </div>
+        <button class="btn-start" onclick="startQuiz()" id="h-btn">Begin Analysis →</button>
+        <div class="feature-grid">
+          <div class="feature-card"><div class="feature-icon">🧠</div><div class="feature-title" id="f1t">Generation Match</div><div class="feature-desc" id="f1d">Which era mindset you carry</div></div>
+          <div class="feature-card"><div class="feature-icon">🌍</div><div class="feature-title" id="f2t">Country + Year</div><div class="feature-desc" id="f2d">Your global lifestyle match</div></div>
+          <div class="feature-card"><div class="feature-icon">✨</div><div class="feature-title" id="f3t">Personality Type</div><div class="feature-desc" id="f3d">Who you really are</div></div>
+          <div class="feature-card"><div class="feature-icon">🗺️</div><div class="feature-title" id="f4t">Growth Roadmap</div><div class="feature-desc" id="f4d">AI-powered 3-phase plan</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div class="screen hidden" id="screen-quiz">
+      <div class="quiz-header">
+        <div class="progress-info">
+          <span class="progress-label" id="prog-label">Question 1 of 30</span>
+          <span class="progress-num" id="prog-pct">0%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+        <span class="category-tag" id="cat-tag"></span>
+      </div>
+      <div class="q-card">
+        <div class="q-number" id="q-num">01</div>
+        <div class="q-text" id="q-text"></div>
+        <div class="options" id="options-container"></div>
+      </div>
+      <div class="quiz-nav">
+        <button class="btn-nav" id="btn-prev" onclick="prevQ()" disabled>← Back</button>
+        <button class="btn-nav primary" id="btn-next" onclick="nextQ()">Next →</button>
+      </div>
+    </div>
+
+    <!-- LOADING SCREEN -->
+    <div class="screen hidden" id="screen-loading">
+      <div class="loading-screen">
+        <div class="dna-loader"></div>
+        <div class="loading-text" id="l-title">Analyzing Your Responses...</div>
+        <div class="loading-sub" id="l-sub">Processing 30 data points across 12 dimensions</div>
+        <div class="loading-steps" id="loading-steps"></div>
+      </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div class="screen hidden" id="screen-results">
+      <div class="results-header">
+        <div class="results-badge">✦ <span id="r-badge-text">Analysis Complete</span></div>
+        <h2 id="r-name">The Visionary Pioneer</h2>
+        <p id="r-tagline">Your results are in. Here's who you truly are.</p>
+      </div>
+      <div class="results-grid">
+        <div class="r-card">
+          <div class="r-label" id="rl1">Generation Mindset</div>
+          <span class="r-emoji" id="r-gen-emoji">🚀</span>
+          <div class="r-main" id="r-gen-type">Gen Z Mindset</div>
+          <div class="r-sub" id="r-gen-desc">Digital native with purpose-driven values</div>
+        </div>
+        <div class="r-card amber">
+          <div class="r-label" id="rl2">Lifestyle Match</div>
+          <span class="r-emoji" id="r-country-emoji">🇰🇷</span>
+          <div class="r-main" id="r-country">2020 Korea</div>
+          <div class="r-sub" id="r-country-desc">Ambitious, trend-forward, high-achieving culture</div>
+        </div>
+        <!-- SPECIFIC ERA MATCH CARD -->
+        <div class="era-match-card">
+          <div class="r-label" id="rl-era">📍 Your Specific Era & City Match</div>
+          <div class="era-pin">
+            <div class="era-pin-dot"></div>
+            <span id="era-pin-text" style="font-family:var(--font-head);font-size:0.82rem;font-weight:700;color:var(--accent2);">Calculating...</span>
+          </div>
+          <div>
+            <span class="era-city" id="era-city">New York</span>
+            <span class="era-year-tag" id="era-year">2019</span>
+          </div>
+          <div class="era-vibe" id="era-vibe">Loading your era match...</div>
+          <div class="era-why">
+            <div class="era-why-title" id="era-why-title">✦ Why This Matches You</div>
+            <div id="era-reasons"></div>
+          </div>
+        </div>
+        <div class="r-card full purple">
+          <div class="r-label" id="rl3">Personality Profile</div>
+          <div class="r-main" id="r-personality">The Strategic Visionary</div>
+          <div class="r-sub" id="r-personality-desc">Loading...</div>
+          <div class="tags" id="r-strengths"></div>
+        </div>
+        <div class="r-card full">
+          <div class="r-label" id="rl4">Areas to Improve</div>
+          <div class="tags" id="r-weaknesses"></div>
+        </div>
+        <div class="r-card full">
+          <div class="r-label" id="rl5">3 Power Tips for You</div>
+          <ul class="tip-list" id="r-tips"></ul>
+        </div>
+        <div class="r-card full amber">
+          <div class="r-label" id="rl6">Future Potential</div>
+          <div class="r-main" id="r-future"></div>
+          <div class="r-sub" id="r-future-sub"></div>
+        </div>
+        <div class="r-card full purple">
+          <div class="r-label" id="rl7">🗺️ Your AI Growth Roadmap</div>
+          <div class="roadmap-section" id="r-roadmap"></div>
+        </div>
+      </div>
+      <div class="motivational">
+        <div class="motivational-quote" id="r-quote">"The best investment you can make is in yourself."</div>
+        <div class="motivational-sub" id="r-quote-sub">— Your unique journey begins now</div>
+      </div>
+      <div class="share-bar">
+        <button class="btn-share secondary" onclick="restartQuiz()" id="rb1">↩ Retake Quiz</button>
+        <button class="btn-share primary" onclick="shareResult()" id="rb2">📤 Share Result</button>
+        <button class="btn-share secondary" onclick="copyResult()" id="rb3">📋 Copy Summary</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== LANGUAGE DATA =====
+const T = {
+  en: {
+    badge:'🧬 Psychological Intelligence Assessment',
+    title:'Discover Your Generation Mindset',
+    desc:'A deep 30-question psychological quiz that reveals your generation type, global lifestyle match, personality profile, and a personalized AI growth roadmap.',
+    s1:'Questions',s2:'Profiles',s3:'Minutes',
+    startBtn:'Begin Analysis →',
+    f1t:'Generation Match',f1d:'Which era mindset you carry',
+    f2t:'Country + Year',f2d:'Your global lifestyle match',
+    f3t:'Personality Type',f3d:'Who you really are',
+    f4t:'Growth Roadmap',f4d:'AI-powered 3-phase plan',
+    progLabel:'Question',progOf:'of',
+    back:'← Back',next:'Next →',submit:'See Results →',
+    loadTitle:'Analyzing Your Responses...',
+    loadSub:'Processing 30 data points across 12 dimensions',
+    loadSteps:['Mapping generation mindset...','Matching global lifestyle...','Building personality profile...','Identifying strengths & weaknesses...','Generating AI growth roadmap...'],
+    resBadge:'✦ Analysis Complete',
+    resTagline:'Your results are in. Here\'s who you truly are.',
+    rl1:'Generation Mindset',rl2:'Lifestyle Match',rl3:'Personality Profile',
+    rl4:'Areas to Improve',rl5:'3 Power Tips for You',rl6:'Future Potential',rl7:'🗺️ Your AI Growth Roadmap',
+    rEra:'📍 Your Specific Era & City Match',rEraWhy:'✦ Why This Matches You',
+    rb1:'↩ Retake Quiz',rb2:'📤 Share Result',rb3:'📋 Copy Summary',
+    copied:'Copied to clipboard!',langBtn:'বাংলা',themeLight:'☀️ Light',themeDark:'🌙 Dark',
+  },
+  bn: {
+    badge:'🧬 মনস্তাত্ত্বিক বুদ্ধিমত্তা মূল্যায়ন',
+    title:'আপনার প্রজন্মের মানসিকতা আবিষ্কার করুন',
+    desc:'৩০টি গভীর মনস্তাত্ত্বিক প্রশ্নের মাধ্যমে আপনার প্রজন্মের ধরন, বৈশ্বিক জীবনধারা, ব্যক্তিত্বের প্রোফাইল এবং একটি ব্যক্তিগতকৃত AI বৃদ্ধির রোডম্যাপ আবিষ্কার করুন।',
+    s1:'প্রশ্ন',s2:'প্রোফাইল',s3:'মিনিট',
+    startBtn:'বিশ্লেষণ শুরু করুন →',
+    f1t:'প্রজন্ম মিলান',f1d:'আপনি কোন যুগের মানসিকতা বহন করেন',
+    f2t:'দেশ + বছর',f2d:'আপনার বৈশ্বিক জীবনধারার মিল',
+    f3t:'ব্যক্তিত্বের ধরন',f3d:'আপনি সত্যিকারের কে',
+    f4t:'বৃদ্ধির রোডম্যাপ',f4d:'AI-চালিত ৩-পর্যায়ের পরিকল্পনা',
+    progLabel:'প্রশ্ন',progOf:'এর',
+    back:'← পেছনে',next:'পরবর্তী →',submit:'ফলাফল দেখুন →',
+    loadTitle:'আপনার উত্তর বিশ্লেষণ করা হচ্ছে...',
+    loadSub:'১২টি মাত্রায় ৩০টি ডেটা পয়েন্ট প্রক্রিয়া করা হচ্ছে',
+    loadSteps:['প্রজন্মের মানসিকতা ম্যাপিং...','বৈশ্বিক জীবনধারা মিলানো...','ব্যক্তিত্বের প্রোফাইল তৈরি...','শক্তি ও দুর্বলতা চিহ্নিতকরণ...','AI বৃদ্ধির রোডম্যাপ তৈরি...'],
+    resBadge:'✦ বিশ্লেষণ সম্পন্ন',
+    resTagline:'আপনার ফলাফল এসে গেছে। এটাই আপনি।',
+    rl1:'প্রজন্মের মানসিকতা',rl2:'জীবনধারার মিল',rl3:'ব্যক্তিত্বের প্রোফাইল',
+    rl4:'উন্নতির ক্ষেত্র',rl5:'আপনার জন্য ৩টি শক্তিশালী টিপস',rl6:'ভবিষ্যৎ সম্ভাবনা',rl7:'🗺️ আপনার AI বৃদ্ধির রোডম্যাপ',
+    rEra:'📍 আপনার নির্দিষ্ট যুগ ও শহরের মিল',rEraWhy:'✦ কেন এটি আপনার সাথে মিলে',
+    rb1:'↩ কুইজ আবার দিন',rb2:'📤 শেয়ার করুন',rb3:'📋 সারসংক্ষেপ কপি করুন',
+    copied:'ক্লিপবোর্ডে কপি হয়েছে!',langBtn:'English',themeLight:'☀️ আলো',themeDark:'🌙 অন্ধকার',
+  }
+};
+
+// ===== QUESTIONS =====
+const questions = [
+  // TECHNOLOGY (1-4)
+  {cat:'tech', catLabel:{en:'🔌 Technology',bn:'🔌 প্রযুক্তি'},
+   en:'How do you primarily consume information and content daily?',
+   bn:'আপনি প্রতিদিন কীভাবে তথ্য ও কনটেন্ট গ্রহণ করেন?',
+   opts:[
+    {en:'Short videos & reels (TikTok/Shorts/Reels)',bn:'শর্ট ভিডিও ও রিলস (টিকটক/শর্টস/রিলস)',
+     gen:{alpha:3,z:2},country:{korea:2,global:3},pers:{creative:2,social:1}},
+    {en:'Long-form YouTube, podcasts, or audiobooks',bn:'লম্বা ইউটিউব, পডকাস্ট বা অডিওবুক',
+     gen:{millennial:3,z:1},country:{usa:2,europe:1},pers:{analytical:2,independent:1}},
+    {en:'Articles, newsletters, and written blogs',bn:'আর্টিকেল, নিউজলেটার ও লিখিত ব্লগ',
+     gen:{genX:3,millennial:1},country:{europe:2,usa:1},pers:{analytical:3,disciplined:1}},
+    {en:'TV, newspapers, or traditional media',bn:'টিভি, সংবাদপত্র বা ঐতিহ্যগত মিডিয়া',
+     gen:{boomer:4},country:{japan:1,europe:1},pers:{analytical:1}},
+   ]},
+  {cat:'tech', catLabel:{en:'🔌 Technology',bn:'🔌 প্রযুক্তি'},
+   en:'What\'s your relationship with social media?',
+   bn:'সোশ্যাল মিডিয়ার সাথে আপনার সম্পর্ক কেমন?',
+   opts:[
+    {en:'I post daily and track engagement metrics',bn:'আমি প্রতিদিন পোস্ট করি এবং এনগেজমেন্ট ট্র্যাক করি',
+     gen:{z:2,alpha:2},country:{korea:3,global:2},pers:{social:3,creative:1}},
+    {en:'I consume but rarely post — I\'m a lurker',bn:'আমি দেখি কিন্তু কমই পোস্ট করি — আমি দর্শক',
+     gen:{millennial:2,genX:1},country:{japan:2,global:1},pers:{independent:2,analytical:1}},
+    {en:'I use it strategically for networking/business',bn:'আমি নেটওয়ার্কিং/ব্যবসার জন্য কৌশলগতভাবে ব্যবহার করি',
+     gen:{millennial:3,z:1},country:{usa:3},pers:{analytical:2,social:1}},
+    {en:'I barely use social media — it\'s a waste of time',bn:'আমি সোশ্যাল মিডিয়া খুব কমই ব্যবহার করি — এটা সময়ের অপচয়',
+     gen:{genX:3,boomer:2},country:{japan:2,europe:1},pers:{disciplined:2,independent:2}},
+   ]},
+  {cat:'tech', catLabel:{en:'🔌 Technology',bn:'🔌 প্রযুক্তি'},
+   en:'How do you feel about AI tools like ChatGPT, Claude, etc.?',
+   bn:'AI টুলস যেমন ChatGPT, Claude ইত্যাদি সম্পর্কে আপনার কী মনে হয়?',
+   opts:[
+    {en:'They\'re essential — I use them every single day',bn:'এগুলো অপরিহার্য — আমি প্রতিদিন ব্যবহার করি',
+     gen:{alpha:3,z:2},country:{global:4,usa:1},pers:{analytical:2,creative:1}},
+    {en:'Helpful tools I use occasionally for specific tasks',bn:'মাঝে মাঝে নির্দিষ্ট কাজে সহায়ক টুলস',
+     gen:{millennial:3,z:1},country:{usa:2,europe:1},pers:{analytical:1,disciplined:1}},
+    {en:'I\'m curious but worried about the future implications',bn:'কৌতূহলী কিন্তু ভবিষ্যতের প্রভাব নিয়ে চিন্তিত',
+     gen:{genX:2,millennial:1},country:{europe:2},pers:{analytical:2}},
+    {en:'Dangerous or unnecessary — human creativity is irreplaceable',bn:'বিপজ্জনক বা অপ্রয়োজনীয় — মানবিক সৃজনশীলতা অপরিবর্তনীয়',
+     gen:{boomer:3,genX:1},country:{japan:1,europe:1},pers:{creative:2,independent:1}},
+   ]},
+  {cat:'tech', catLabel:{en:'🔌 Technology',bn:'🔌 প্রযুক্তি'},
+   en:'What is your primary device for work or study?',
+   bn:'কাজ বা পড়াশোনার জন্য আপনার প্রাথমিক ডিভাইস কী?',
+   opts:[
+    {en:'Smartphone — I do everything from my phone',bn:'স্মার্টফোন — ফোন থেকেই সব করি',
+     gen:{z:3,alpha:2},country:{korea:2,global:2},pers:{creative:1,social:1}},
+    {en:'Laptop or desktop — I need a real workspace',bn:'ল্যাপটপ বা ডেস্কটপ — আসল কর্মক্ষেত্র দরকার',
+     gen:{millennial:2,genX:2},country:{usa:2,europe:1},pers:{analytical:2,disciplined:1}},
+    {en:'Multiple devices synced together seamlessly',bn:'একাধিক ডিভাইস একসাথে সিঙ্ক করা',
+     gen:{millennial:3,z:1},country:{global:3,usa:1},pers:{analytical:2}},
+    {en:'Traditional tools are my preference (notebooks, etc.)',bn:'ঐতিহ্যগত টুলস পছন্দ (নোটবুক ইত্যাদি)',
+     gen:{boomer:3,genX:2},country:{japan:3},pers:{disciplined:3,independent:1}},
+   ]},
+  // GOALS & AMBITION (5-7)
+  {cat:'goals', catLabel:{en:'🎯 Goals & Ambition',bn:'🎯 লক্ষ্য ও উচ্চাকাঙ্ক্ষা'},
+   en:'What is your primary life goal right now?',
+   bn:'এই মুহূর্তে আপনার প্রধান জীবন লক্ষ্য কী?',
+   opts:[
+    {en:'Financial freedom — building wealth aggressively',bn:'আর্থিক স্বাধীনতা — আক্রমণাত্মকভাবে সম্পদ তৈরি',
+     gen:{millennial:2,z:2},country:{usa:3,korea:2},pers:{analytical:2,disciplined:2}},
+    {en:'Impact & purpose — leaving a meaningful legacy',bn:'প্রভাব ও উদ্দেশ্য — অর্থবহ উত্তরাধিকার রেখে যাওয়া',
+     gen:{millennial:3},country:{europe:2,global:2},pers:{empathetic:3,creative:1}},
+    {en:'Fame, influence, or being recognized publicly',bn:'খ্যাতি, প্রভাব বা প্রকাশ্যে স্বীকৃতি পাওয়া',
+     gen:{z:3,alpha:2},country:{korea:3,usa:1},pers:{social:3,creative:2}},
+    {en:'Stability, peace, and a comfortable family life',bn:'স্থিতিশীলতা, শান্তি এবং স্বাচ্ছন্দ্যময় পারিবারিক জীবন',
+     gen:{boomer:3,genX:2},country:{japan:2,europe:2},pers:{disciplined:1,empathetic:2}},
+   ]},
+  {cat:'goals', catLabel:{en:'🎯 Goals & Ambition',bn:'🎯 লক্ষ্য ও উচ্চাকাঙ্ক্ষা'},
+   en:'Where do you see yourself in 5 years?',
+   bn:'৫ বছর পরে আপনি নিজেকে কোথায় দেখতে চান?',
+   opts:[
+    {en:'Running my own business or as a top creator',bn:'নিজের ব্যবসা চালানো বা শীর্ষ ক্রিয়েটর হওয়া',
+     gen:{z:3,millennial:2},country:{usa:3,global:2},pers:{creative:2,independent:3}},
+    {en:'Leading a team at a high-impact organization',bn:'উচ্চ-প্রভাবসম্পন্ন প্রতিষ্ঠানে দল পরিচালনা',
+     gen:{millennial:3,genX:1},country:{korea:2,usa:2},pers:{analytical:2,social:2}},
+    {en:'Mastered my craft and respected in my field',bn:'নিজের দক্ষতায় পারদর্শী এবং ক্ষেত্রে সম্মানিত',
+     gen:{genX:3,boomer:1},country:{japan:3,europe:1},pers:{disciplined:3,analytical:2}},
+    {en:'Living abroad or building a global lifestyle',bn:'বিদেশে বাস করা বা বৈশ্বিক জীবনধারা তৈরি',
+     gen:{z:2,millennial:2},country:{global:4},pers:{independent:3,creative:1}},
+   ]},
+  {cat:'goals', catLabel:{en:'🎯 Goals & Ambition',bn:'🎯 লক্ষ্য ও উচ্চাকাঙ্ক্ষা'},
+   en:'How do you define success?',
+   bn:'আপনি সাফল্য কীভাবে সংজ্ঞায়িত করেন?',
+   opts:[
+    {en:'Net worth, assets, and financial independence',bn:'নেট ওয়ার্থ, সম্পদ এবং আর্থিক স্বাধীনতা',
+     gen:{millennial:2,genX:2},country:{usa:3},pers:{analytical:2,disciplined:2}},
+    {en:'Happiness, health, and authentic relationships',bn:'সুখ, স্বাস্থ্য এবং খাঁটি সম্পর্ক',
+     gen:{z:2,millennial:1},country:{europe:3,global:1},pers:{empathetic:3,social:1}},
+    {en:'Recognition and leaving my mark on the world',bn:'স্বীকৃতি এবং বিশ্বে নিজের ছাপ রাখা',
+     gen:{z:3,alpha:1},country:{korea:2,usa:1},pers:{creative:2,social:2}},
+    {en:'Fulfilling my responsibilities to family and community',bn:'পরিবার ও সম্প্রদায়ের প্রতি দায়িত্ব পালন',
+     gen:{boomer:3,genX:1},country:{japan:2,southasia:3},pers:{empathetic:2,disciplined:1}},
+   ]},
+  // LIFESTYLE (8-9)
+  {cat:'lifestyle', catLabel:{en:'🌿 Lifestyle',bn:'🌿 জীবনধারা'},
+   en:'Describe your typical morning routine:',
+   bn:'আপনার সাধারণ সকালের রুটিন বর্ণনা করুন:',
+   opts:[
+    {en:'5-6am wake up, workout, journaling, structured plan',bn:'ভোর ৫-৬টায় ওঠা, ব্যায়াম, জার্নালিং, পরিকল্পিত দিন',
+     gen:{genX:2,millennial:2},country:{usa:3,korea:1},pers:{disciplined:4,analytical:1}},
+    {en:'Wake whenever, check phone, start when ready',bn:'যখন ইচ্ছে ওঠা, ফোন চেক করা, প্রস্তুত হলে শুরু',
+     gen:{z:3,alpha:2},country:{global:2},pers:{creative:2,independent:1}},
+    {en:'Consistent time but relaxed — coffee, news, ease in',bn:'নির্দিষ্ট সময়ে কিন্তু শিথিল — কফি, খবর, আস্তে আস্তে',
+     gen:{boomer:2,genX:2},country:{europe:3},pers:{disciplined:1,empathetic:1}},
+    {en:'Meditation, mindfulness, or spiritual practice first',bn:'প্রথমে ধ্যান, মাইন্ডফুলনেস বা আধ্যাত্মিক অনুশীলন',
+     gen:{millennial:2,genX:1},country:{japan:3,global:1},pers:{disciplined:2,empathetic:2}},
+   ]},
+  {cat:'lifestyle', catLabel:{en:'🌿 Lifestyle',bn:'🌿 জীবনধারা'},
+   en:'How do you prefer to spend your weekends?',
+   bn:'আপনি সপ্তাহান্তে কীভাবে সময় কাটাতে পছন্দ করেন?',
+   opts:[
+    {en:'Working on side projects or self-improvement',bn:'সাইড প্রজেক্ট বা আত্ম-উন্নয়নে কাজ',
+     gen:{millennial:3,z:1},country:{usa:2,korea:3},pers:{disciplined:3,analytical:1}},
+    {en:'Social events, hanging with friends and family',bn:'সামাজিক অনুষ্ঠান, বন্ধু ও পরিবারের সাথে সময়',
+     gen:{z:2,boomer:1},country:{southasia:2,europe:2},pers:{social:4,empathetic:1}},
+    {en:'Exploring new places, experiences, and adventures',bn:'নতুন জায়গা, অভিজ্ঞতা এবং অ্যাডভেঞ্চার অন্বেষণ',
+     gen:{millennial:2,z:1},country:{global:3,europe:1},pers:{independent:3,creative:2}},
+    {en:'Rest, hobbies, gaming, and recharging alone',bn:'বিশ্রাম, শখ, গেমিং এবং একা রিচার্জ করা',
+     gen:{z:3,genX:1},country:{japan:2,global:1},pers:{independent:2,creative:2}},
+   ]},
+  // DISCIPLINE (10-11)
+  {cat:'discipline', catLabel:{en:'⚡ Discipline',bn:'⚡ শৃঙ্খলা'},
+   en:'When you set a goal, how consistent are you?',
+   bn:'যখন আপনি একটি লক্ষ্য নির্ধারণ করেন, তখন আপনি কতটা ধারাবাহিক?',
+   opts:[
+    {en:'I follow through — 90%+ consistency no matter what',bn:'আমি সম্পন্ন করি — যা-ই হোক ৯০%+ ধারাবাহিকতা',
+     gen:{genX:2,millennial:2},country:{japan:3,korea:2},pers:{disciplined:4}},
+    {en:'Strong start but I often lose momentum mid-way',bn:'শক্তিশালী শুরু কিন্তু মাঝে মাঝে গতি হারাই',
+     gen:{z:2,millennial:1},country:{usa:1},pers:{creative:1,social:1}},
+    {en:'I work in bursts — intense then rest then intense',bn:'বিরতিতে কাজ করি — তীব্র, তারপর বিশ্রাম, তারপর তীব্র',
+     gen:{z:2,alpha:1},country:{global:1},pers:{creative:2,independent:1}},
+    {en:'I struggle with consistency — working on it',bn:'ধারাবাহিকতায় সংগ্রাম করি — এটা নিয়ে কাজ করছি',
+     gen:{alpha:1,z:1},country:{southasia:1},pers:{empathetic:1}},
+   ]},
+  {cat:'discipline', catLabel:{en:'⚡ Discipline',bn:'⚡ শৃঙ্খলা'},
+   en:'How do you manage your time and tasks?',
+   bn:'আপনি কীভাবে সময় ও কাজ পরিচালনা করেন?',
+   opts:[
+    {en:'Detailed schedules, calendars, and time-blocking',bn:'বিস্তারিত সময়সূচি, ক্যালেন্ডার এবং টাইম-ব্লকিং',
+     gen:{genX:2,millennial:2},country:{japan:3,usa:2},pers:{disciplined:4,analytical:2}},
+    {en:'To-do lists but flexible about when I do things',bn:'টু-ডু লিস্ট কিন্তু কখন করব তা নিয়ে নমনীয়',
+     gen:{millennial:2,z:1},country:{europe:2},pers:{disciplined:2,analytical:1}},
+    {en:'I work from memory and handle things as they come',bn:'স্মৃতি থেকে কাজ করি এবং আসামাত্র সামলাই',
+     gen:{z:2,alpha:1},country:{global:1},pers:{creative:1,independent:2}},
+    {en:'I\'m still figuring out what works for me',bn:'আমি এখনও বুঝছি আমার জন্য কী কাজ করে',
+     gen:{alpha:2,z:1},country:{southasia:1},pers:{independent:1}},
+   ]},
+  // SOCIAL BEHAVIOR (12-13)
+  {cat:'social', catLabel:{en:'👥 Social Behavior',bn:'👥 সামাজিক আচরণ'},
+   en:'How do you prefer to communicate with others?',
+   bn:'আপনি অন্যদের সাথে কীভাবে যোগাযোগ করতে পছন্দ করেন?',
+   opts:[
+    {en:'Text messages — quick, async, no pressure',bn:'টেক্সট মেসেজ — দ্রুত, অ্যাসিঙ্ক্রোনাস, চাপমুক্ত',
+     gen:{z:3,alpha:2},country:{korea:2,global:2},pers:{independent:2,creative:1}},
+    {en:'Voice calls and face-to-face — real connection',bn:'ভয়েস কল এবং মুখোমুখি — আসল সংযোগ',
+     gen:{boomer:3,genX:2},country:{europe:2,southasia:2},pers:{social:3,empathetic:2}},
+    {en:'Video calls — best of both worlds',bn:'ভিডিও কল — উভয়ের সেরা',
+     gen:{millennial:3,z:1},country:{global:3,usa:1},pers:{social:2,analytical:1}},
+    {en:'Email or detailed written messages — professional',bn:'ইমেইল বা বিস্তারিত লিখিত বার্তা — পেশাদার',
+     gen:{genX:3,millennial:1},country:{usa:2,europe:1},pers:{analytical:2,disciplined:1}},
+   ]},
+  {cat:'social', catLabel:{en:'👥 Social Behavior',bn:'👥 সামাজিক আচরণ'},
+   en:'How would you describe your social style?',
+   bn:'আপনি আপনার সামাজিক শৈলী কীভাবে বর্ণনা করবেন?',
+   opts:[
+    {en:'Extrovert — energized by people and crowds',bn:'এক্সট্রোভার্ট — মানুষ ও ভিড়ে শক্তি পাই',
+     gen:{z:2,boomer:1},country:{usa:2,korea:1},pers:{social:4,empathetic:1}},
+    {en:'Introvert — need alone time to recharge',bn:'ইন্ট্রোভার্ট — রিচার্জের জন্য একা সময় দরকার',
+     gen:{genX:2,z:1},country:{japan:2,europe:1},pers:{independent:3,analytical:2}},
+    {en:'Ambivert — depends on context and my energy',bn:'অ্যাম্বিভার্ট — প্রসঙ্গ এবং শক্তির উপর নির্ভর করে',
+     gen:{millennial:3,z:1},country:{global:2,europe:1},pers:{social:2,independent:1}},
+    {en:'Highly selective — deep bonds with very few people',bn:'অত্যন্ত বাছাইকারী — অল্প মানুষের সাথে গভীর বন্ধন',
+     gen:{genX:2,millennial:1},country:{japan:3},pers:{independent:2,empathetic:2}},
+   ]},
+  // LEARNING (14-15)
+  {cat:'learning', catLabel:{en:'📚 Learning Mindset',bn:'📚 শেখার মানসিকতা'},
+   en:'How do you learn new skills?',
+   bn:'আপনি কীভাবে নতুন দক্ষতা শেখেন?',
+   opts:[
+    {en:'YouTube, online courses, and free resources',bn:'ইউটিউব, অনলাইন কোর্স এবং বিনামূল্যের রিসোর্স',
+     gen:{z:3,millennial:2},country:{global:3,usa:1},pers:{independent:2,analytical:1}},
+    {en:'Books, structured courses, and formal education',bn:'বই, কাঠামোবদ্ধ কোর্স এবং আনুষ্ঠানিক শিক্ষা',
+     gen:{boomer:2,genX:2,millennial:1},country:{japan:2,europe:2},pers:{disciplined:3,analytical:2}},
+    {en:'Learning by doing — jump in and figure it out',bn:'করতে করতে শেখা — ঝাঁপিয়ে পড়া এবং বের করা',
+     gen:{genX:2,z:1,alpha:1},country:{usa:2},pers:{creative:2,independent:2}},
+    {en:'Mentors, masterminds, and learning from experts',bn:'মেন্টর, মাস্টারমাইন্ড এবং বিশেষজ্ঞদের কাছ থেকে শেখা',
+     gen:{millennial:3},country:{usa:3,korea:1},pers:{social:2,analytical:2}},
+   ]},
+  {cat:'learning', catLabel:{en:'📚 Learning Mindset',bn:'📚 শেখার মানসিকতা'},
+   en:'How do you respond when you fail at something?',
+   bn:'কোনো কিছুতে ব্যর্থ হলে আপনি কীভাবে সাড়া দেন?',
+   opts:[
+    {en:'Immediately analyze what went wrong and iterate',bn:'অবিলম্বে কী ভুল হয়েছে তা বিশ্লেষণ করি এবং পুনরাবৃত্তি করি',
+     gen:{millennial:2,z:1},country:{usa:2,korea:2},pers:{analytical:3,disciplined:2}},
+    {en:'Take time to recover emotionally then try again',bn:'আবেগগতভাবে সুস্থ হতে সময় নিই তারপর আবার চেষ্টা করি',
+     gen:{z:2,millennial:1},country:{europe:2,global:1},pers:{empathetic:2,independent:1}},
+    {en:'View it as data — failure is part of the process',bn:'ডেটা হিসেবে দেখি — ব্যর্থতা প্রক্রিয়ার অংশ',
+     gen:{genX:3,millennial:1},country:{usa:3},pers:{analytical:3,independent:2}},
+    {en:'I avoid failure by being very careful before starting',bn:'শুরু করার আগে খুব সতর্ক থেকে ব্যর্থতা এড়াই',
+     gen:{boomer:2,genX:1},country:{japan:3},pers:{disciplined:2,analytical:1}},
+   ]},
+  // RISK-TAKING (16-17)
+  {cat:'risk', catLabel:{en:'🎲 Risk-Taking',bn:'🎲 ঝুঁকি গ্রহণ'},
+   en:'How comfortable are you with uncertainty and risk?',
+   bn:'অনিশ্চয়তা এবং ঝুঁকি নিয়ে আপনি কতটা স্বাচ্ছন্দ্যবোধ করেন?',
+   opts:[
+    {en:'Very comfortable — I thrive in chaos and disruption',bn:'অনেক স্বাচ্ছন্দ্যবোধ করি — বিশৃঙ্খলা ও পরিবর্তনে উন্নতি হই',
+     gen:{genX:2,z:2,millennial:1},country:{usa:3},pers:{creative:3,independent:3}},
+    {en:'Calculated risks — I analyze before I leap',bn:'হিসেবিভাবে ঝুঁকি — লাফানোর আগে বিশ্লেষণ করি',
+     gen:{millennial:3},country:{korea:2,usa:2},pers:{analytical:3,disciplined:1}},
+    {en:'Moderate — I take some risks but need a safety net',bn:'মাঝারি — কিছু ঝুঁকি নিই কিন্তু নিরাপত্তা জাল দরকার',
+     gen:{z:2,genX:1},country:{europe:2},pers:{disciplined:1,empathetic:1}},
+    {en:'Low risk tolerance — I prefer security and stability',bn:'কম ঝুঁকি সহনশীলতা — নিরাপত্তা ও স্থিতিশীলতা পছন্দ',
+     gen:{boomer:3},country:{japan:3},pers:{disciplined:2}},
+   ]},
+  {cat:'risk', catLabel:{en:'🎲 Risk-Taking',bn:'🎲 ঝুঁকি গ্রহণ'},
+   en:'If you had a great business idea, what would you do?',
+   bn:'যদি আপনার কাছে একটি দুর্দান্ত ব্যবসায়িক আইডিয়া থাকে, আপনি কী করবেন?',
+   opts:[
+    {en:'Start it immediately with minimal resources — move fast',bn:'অবিলম্বে ন্যূনতম রিসোর্স দিয়ে শুরু — দ্রুত চলুন',
+     gen:{z:3,alpha:1,millennial:1},country:{usa:4},pers:{creative:3,independent:3}},
+    {en:'Research thoroughly, plan, then launch strategically',bn:'পুঙ্খানুপুঙ্খ গবেষণা, পরিকল্পনা, তারপর কৌশলগতভাবে লঞ্চ',
+     gen:{millennial:3,genX:1},country:{korea:2,japan:1},pers:{analytical:4,disciplined:2}},
+    {en:'Start as a side project first, validate, then scale',bn:'প্রথমে সাইড প্রজেক্ট হিসেবে শুরু, যাচাই, তারপর স্কেল',
+     gen:{millennial:2,genX:1},country:{europe:2,global:2},pers:{analytical:2,disciplined:2}},
+    {en:'Wait for the right moment and more stability',bn:'সঠিক মুহূর্ত এবং আরও স্থিতিশীলতার জন্য অপেক্ষা',
+     gen:{boomer:2,genX:1},country:{japan:2,southasia:2},pers:{disciplined:1}},
+   ]},
+  // HEALTH (18-19)
+  {cat:'health', catLabel:{en:'💪 Health Habits',bn:'💪 স্বাস্থ্য অভ্যাস'},
+   en:'How do you approach physical fitness?',
+   bn:'আপনি শারীরিক সুস্থতার বিষয়ে কীভাবে সমীপবর্তী হন?',
+   opts:[
+    {en:'Consistent gym/training — fitness is a lifestyle',bn:'ধারাবাহিক জিম/প্রশিক্ষণ — ফিটনেস জীবনধারা',
+     gen:{genX:2,millennial:2,z:1},country:{usa:3,korea:3},pers:{disciplined:4}},
+    {en:'Yoga, mindfulness, and holistic wellness practices',bn:'যোগব্যায়াম, মাইন্ডফুলনেস এবং সামগ্রিক সুস্থতা অনুশীলন',
+     gen:{millennial:2,z:1},country:{japan:2,europe:2},pers:{disciplined:2,empathetic:2}},
+    {en:'Active lifestyle — sports, hiking, outdoor activities',bn:'সক্রিয় জীবনধারা — খেলাধুলা, হাইকিং, বহিরাঙ্গন কার্যক্রম',
+     gen:{genX:2,z:1},country:{europe:3,global:1},pers:{independent:2,social:1}},
+    {en:'I\'m not very active but want to improve this',bn:'আমি খুব সক্রিয় নই কিন্তু এটা উন্নত করতে চাই',
+     gen:{alpha:1,z:1},country:{southasia:1},pers:{empathetic:1}},
+   ]},
+  {cat:'health', catLabel:{en:'💪 Health Habits',bn:'💪 স্বাস্থ্য অভ্যাস'},
+   en:'How do you prioritize your mental health?',
+   bn:'আপনি মানসিক স্বাস্থ্যকে কীভাবে প্রাধান্য দেন?',
+   opts:[
+    {en:'Therapy, journaling, and active mental wellness practices',bn:'থেরাপি, জার্নালিং এবং সক্রিয় মানসিক সুস্থতা অনুশীলন',
+     gen:{z:3,millennial:2},country:{usa:2,europe:2},pers:{empathetic:4,disciplined:1}},
+    {en:'Meditation and mindfulness as daily rituals',bn:'প্রতিদিনের আচার হিসেবে ধ্যান এবং মাইন্ডফুলনেস',
+     gen:{millennial:2,genX:1},country:{japan:3},pers:{disciplined:3,empathetic:2}},
+    {en:'Exercise and social connection are my therapy',bn:'ব্যায়াম এবং সামাজিক সংযোগ আমার থেরাপি',
+     gen:{genX:2,z:1},country:{europe:2,usa:1},pers:{social:2,disciplined:1}},
+    {en:'I don\'t focus on it much — I push through things',bn:'আমি এতে বেশি মনোযোগ দিই না — সবকিছু ঠেলে পার হই',
+     gen:{boomer:2,genX:1},country:{korea:2,japan:1},pers:{disciplined:1,independent:1}},
+   ]},
+  // MONEY MINDSET (20-21)
+  {cat:'money', catLabel:{en:'💰 Money Mindset',bn:'💰 অর্থের মানসিকতা'},
+   en:'What\'s your relationship with money?',
+   bn:'অর্থের সাথে আপনার সম্পর্ক কেমন?',
+   opts:[
+    {en:'Investing and building multiple income streams',bn:'বিনিয়োগ করি এবং একাধিক আয়ের উৎস তৈরি করি',
+     gen:{millennial:3,z:1},country:{usa:3,global:2},pers:{analytical:3,disciplined:2}},
+    {en:'Spending on experiences — money is for living',bn:'অভিজ্ঞতায় খরচ — অর্থ বাঁচার জন্য',
+     gen:{millennial:2,z:1},country:{europe:2,usa:1},pers:{independent:2,creative:1}},
+    {en:'Saving conservatively — I don\'t like financial risk',bn:'রক্ষণশীলভাবে সঞ্চয় — আর্থিক ঝুঁকি পছন্দ করি না',
+     gen:{boomer:3,genX:1},country:{japan:3},pers:{disciplined:3}},
+    {en:'Building wealth through entrepreneurship and equity',bn:'উদ্যোক্তা এবং ইক্যুইটির মাধ্যমে সম্পদ তৈরি',
+     gen:{z:2,millennial:2},country:{usa:2,global:3},pers:{analytical:2,independent:3,creative:1}},
+   ]},
+  {cat:'money', catLabel:{en:'💰 Money Mindset',bn:'💰 অর্থের মানসিকতা'},
+   en:'What do you most spend your money on?',
+   bn:'আপনি সবচেয়ে বেশি অর্থ কীসে খরচ করেন?',
+   opts:[
+    {en:'Courses, books, and self-improvement investments',bn:'কোর্স, বই এবং আত্ম-উন্নয়নে বিনিয়োগ',
+     gen:{millennial:3,z:1},country:{usa:2,korea:2},pers:{disciplined:2,analytical:2}},
+    {en:'Experiences — travel, food, entertainment',bn:'অভিজ্ঞতা — ভ্রমণ, খাবার, বিনোদন',
+     gen:{millennial:2,z:1},country:{global:2,europe:2},pers:{independent:2,social:1}},
+    {en:'Tech gadgets and digital tools/subscriptions',bn:'টেক গ্যাজেট এবং ডিজিটাল টুলস/সাবস্ক্রিপশন',
+     gen:{z:3,alpha:2},country:{korea:2,global:2},pers:{analytical:1,creative:1}},
+    {en:'Family, home, and long-term financial security',bn:'পরিবার, বাড়ি এবং দীর্ঘমেয়াদী আর্থিক নিরাপত্তা',
+     gen:{boomer:3,genX:2},country:{southasia:2,japan:2},pers:{disciplined:2,empathetic:2}},
+   ]},
+  // GLOBAL AWARENESS (22-23)
+  {cat:'global', catLabel:{en:'🌎 Global Awareness',bn:'🌎 বৈশ্বিক সচেতনতা'},
+   en:'How do you feel about global issues (climate, inequality, geopolitics)?',
+   bn:'বৈশ্বিক সমস্যা (জলবায়ু, বৈষম্য, ভূরাজনীতি) সম্পর্কে আপনি কেমন অনুভব করেন?',
+   opts:[
+    {en:'Deeply concerned and actively involved in change',bn:'গভীরভাবে উদ্বিগ্ন এবং সক্রিয়ভাবে পরিবর্তনে যুক্ত',
+     gen:{z:3,millennial:2},country:{europe:3,global:2},pers:{empathetic:4,social:2}},
+    {en:'Aware and I make choices that align with my values',bn:'সচেতন এবং মান অনুযায়ী পছন্দ করি',
+     gen:{millennial:3,z:1},country:{europe:2,global:1},pers:{empathetic:2,analytical:1}},
+    {en:'Aware but feel powerless — focusing on my own world',bn:'সচেতন কিন্তু অসহায় বোধ — নিজের জগতে মনোযোগ',
+     gen:{z:2,genX:1},country:{usa:1},pers:{independent:1}},
+    {en:'I focus locally — my community and country first',bn:'স্থানীয়ভাবে মনোযোগ — প্রথমে আমার সম্প্রদায় ও দেশ',
+     gen:{boomer:2,genX:1},country:{southasia:2,japan:1},pers:{empathetic:1,social:1}},
+   ]},
+  {cat:'global', catLabel:{en:'🌎 Global Awareness',bn:'🌎 বৈশ্বিক সচেতনতা'},
+   en:'What\'s your relationship with travel and world cultures?',
+   bn:'ভ্রমণ এবং বিশ্ব সংস্কৃতির সাথে আপনার সম্পর্ক কেমন?',
+   opts:[
+    {en:'I\'ve been to many countries and see the world as home',bn:'অনেক দেশে গেছি এবং বিশ্বকে বাড়ি মনে করি',
+     gen:{millennial:2,z:1},country:{global:4,europe:1},pers:{independent:3,social:2}},
+    {en:'I dream of traveling more — it\'s a major life goal',bn:'বেশি ভ্রমণের স্বপ্ন দেখি — এটা প্রধান জীবন লক্ষ্য',
+     gen:{z:3,alpha:1},country:{global:2,southasia:2},pers:{creative:2,independent:2}},
+    {en:'Occasional travel for experiences — quality over quantity',bn:'অভিজ্ঞতার জন্য মাঝেমাঝে ভ্রমণ — পরিমাণের চেয়ে মান',
+     gen:{millennial:2,genX:1},country:{europe:2},pers:{independent:1,empathetic:1}},
+    {en:'I prefer the comfort and security of home',bn:'বাড়ির আরাম ও নিরাপত্তা পছন্দ',
+     gen:{boomer:2,genX:1},country:{japan:2,southasia:2},pers:{disciplined:1}},
+   ]},
+  // EMOTIONAL INTELLIGENCE (24-25)
+  {cat:'emotional', catLabel:{en:'❤️ Emotional Intelligence',bn:'❤️ আবেগীয় বুদ্ধিমত্তা'},
+   en:'How do you typically handle stress and pressure?',
+   bn:'আপনি সাধারণত চাপ ও মানসিক চাপ কীভাবে সামলান?',
+   opts:[
+    {en:'I process emotions openly and seek support when needed',bn:'আবেগ খোলাখুলিভাবে প্রক্রিয়া করি এবং প্রয়োজনে সহায়তা চাই',
+     gen:{z:3,millennial:1},country:{usa:2,europe:2},pers:{empathetic:4,social:2}},
+    {en:'I work through it — stress fuels my productivity',bn:'এর মধ্য দিয়ে কাজ করি — চাপ উৎপাদনশীলতা বাড়ায়',
+     gen:{genX:2,millennial:2},country:{korea:3,usa:1},pers:{disciplined:3,analytical:1}},
+    {en:'Meditation, journaling, or solo reflection',bn:'ধ্যান, জার্নালিং বা একা প্রতিফলন',
+     gen:{millennial:2,z:1},country:{japan:3,europe:1},pers:{independent:2,empathetic:2}},
+    {en:'I bottle it up and push through — tough it out',bn:'ভেতরে চাপা দিই এবং ঠেলে পার হই — শক্ত হই',
+     gen:{boomer:3,genX:1},country:{japan:2,korea:1},pers:{disciplined:2,independent:1}},
+   ]},
+  {cat:'emotional', catLabel:{en:'❤️ Emotional Intelligence',bn:'❤️ আবেগীয় বুদ্ধিমত্তা'},
+   en:'How easily can you understand others\' emotions and perspectives?',
+   bn:'আপনি কতটা সহজে অন্যদের আবেগ ও দৃষ্টিভঙ্গি বুঝতে পারেন?',
+   opts:[
+    {en:'Very easily — I feel others\' emotions deeply (empath)',bn:'অনেক সহজে — অন্যদের আবেগ গভীরভাবে অনুভব করি (এম্প্যাথ)',
+     gen:{z:2,millennial:2},country:{europe:2,global:1},pers:{empathetic:5,social:1}},
+    {en:'Good at it — I actively try to understand perspectives',bn:'ভালো — সক্রিয়ভাবে দৃষ্টিভঙ্গি বুঝতে চেষ্টা করি',
+     gen:{millennial:3,genX:1},country:{europe:2,usa:1},pers:{empathetic:3,analytical:1}},
+    {en:'Moderate — I can but need to make the conscious effort',bn:'মাঝারি — পারি কিন্তু সচেতন প্রচেষ্টা দরকার',
+     gen:{genX:2,z:1},country:{usa:1},pers:{analytical:1,empathetic:1}},
+    {en:'I focus more on logic than emotions in conversations',bn:'কথোপকথনে আবেগের চেয়ে যুক্তিতে বেশি মনোযোগ',
+     gen:{genX:3,boomer:1},country:{japan:2},pers:{analytical:4,independent:1}},
+   ]},
+  // DECISION MAKING (26-27)
+  {cat:'decision', catLabel:{en:'🧩 Decision Making',bn:'🧩 সিদ্ধান্ত গ্রহণ'},
+   en:'How do you make important decisions?',
+   bn:'আপনি গুরুত্বপূর্ণ সিদ্ধান্ত কীভাবে নেন?',
+   opts:[
+    {en:'Data first — I research extensively before deciding',bn:'প্রথমে ডেটা — সিদ্ধান্ত নেওয়ার আগে ব্যাপকভাবে গবেষণা',
+     gen:{millennial:2,genX:2},country:{japan:3,usa:1},pers:{analytical:5,disciplined:1}},
+    {en:'Gut feeling plus data — trust my instincts',bn:'অন্ত্রের অনুভূতি এবং ডেটা — প্রবৃত্তিতে বিশ্বাস',
+     gen:{genX:2,millennial:1},country:{usa:2},pers:{creative:2,independent:2}},
+    {en:'Consult trusted people and gather multiple perspectives',bn:'বিশ্বস্ত মানুষদের পরামর্শ নিই এবং একাধিক দৃষ্টিভঙ্গি সংগ্রহ',
+     gen:{z:2,millennial:2},country:{europe:2,southasia:2},pers:{social:3,empathetic:2}},
+    {en:'I often delay decisions — I struggle with commitment',bn:'প্রায়ই সিদ্ধান্ত বিলম্বিত করি — প্রতিশ্রুতিতে সংগ্রাম',
+     gen:{alpha:1,z:1},country:{southasia:1},pers:{empathetic:1}},
+   ]},
+  {cat:'decision', catLabel:{en:'🧩 Decision Making',bn:'🧩 সিদ্ধান্ত গ্রহণ'},
+   en:'When facing a complex problem, your natural approach is:',
+   bn:'জটিল সমস্যার মুখে আপনার স্বাভাবিক পদ্ধতি হলো:',
+   opts:[
+    {en:'Break it into steps and systematically work through it',bn:'ধাপে ধাপে ভাগ করি এবং পদ্ধতিগতভাবে কাজ করি',
+     gen:{millennial:2,genX:2},country:{japan:2,usa:2},pers:{analytical:5,disciplined:3}},
+    {en:'Brainstorm creatively and think outside the box',bn:'সৃজনশীলভাবে ব্রেইনস্টর্ম করি এবং অপ্রচলিতভাবে ভাবি',
+     gen:{z:2,millennial:1,alpha:1},country:{global:2,usa:1},pers:{creative:5,independent:2}},
+    {en:'Find someone who\'s solved it before and learn from them',bn:'কেউ আগে সমাধান করেছে এমন কাউকে খুঁজি এবং শিখি',
+     gen:{millennial:2,z:1},country:{korea:2,usa:1},pers:{social:2,analytical:1}},
+    {en:'Take action immediately and adapt as I go',bn:'অবিলম্বে পদক্ষেপ নিই এবং যেতে যেতে মানিয়ে নিই',
+     gen:{genX:2,z:1},country:{usa:2},pers:{independent:3,creative:1}},
+   ]},
+  // EXTRA DEPTH (28-30)
+  {cat:'discipline', catLabel:{en:'⚡ Discipline',bn:'⚡ শৃঙ্খলা'},
+   en:'How do you approach self-improvement?',
+   bn:'আপনি আত্ম-উন্নয়নের বিষয়ে কীভাবে সমীপবর্তী হন?',
+   opts:[
+    {en:'It\'s a daily obsession — I read, listen, and apply constantly',bn:'এটা দৈনিক আবেশ — ক্রমাগত পড়ি, শুনি এবং প্রয়োগ করি',
+     gen:{millennial:3,z:1},country:{usa:3,global:2},pers:{disciplined:4,analytical:2}},
+    {en:'When I feel behind — I have periods of intense growth',bn:'পিছিয়ে পড়লে — তীব্র বৃদ্ধির পর্যায় থাকে',
+     gen:{z:2,genX:1},country:{korea:2},pers:{disciplined:1,independent:2}},
+    {en:'I prefer natural organic growth over forced improvement',bn:'জোরপূর্বক উন্নতির চেয়ে স্বাভাবিক জৈব বৃদ্ধি পছন্দ',
+     gen:{boomer:1,genX:1},country:{europe:2,japan:1},pers:{independent:2,empathetic:1}},
+    {en:'Self-improvement content is my main entertainment',bn:'আত্ম-উন্নয়ন কনটেন্ট আমার প্রধান বিনোদন',
+     gen:{z:3,millennial:1},country:{global:2,usa:2},pers:{analytical:2,disciplined:2}},
+   ]},
+  {cat:'goals', catLabel:{en:'🎯 Goals & Ambition',bn:'🎯 লক্ষ্য ও উচ্চাকাঙ্ক্ষা'},
+   en:'Which statement best describes your worldview?',
+   bn:'কোন বক্তব্যটি আপনার বিশ্বদৃষ্টিভঙ্গি সবচেয়ে ভালোভাবে বর্ণনা করে?',
+   opts:[
+    {en:'The world is full of opportunity — anyone can make it',bn:'বিশ্ব সুযোগে ভরপুর — যে কেউ সফল হতে পারে',
+     gen:{millennial:2,z:1,genX:1},country:{usa:4},pers:{independent:3,creative:1}},
+    {en:'Systems and structures shape our outcomes — reform them',bn:'সিস্টেম ও কাঠামো আমাদের ফলাফল গঠন করে — সংস্কার করুন',
+     gen:{z:3},country:{europe:3,global:1},pers:{empathetic:3,analytical:2}},
+    {en:'Collective progress — we rise by lifting others',bn:'সম্মিলিত অগ্রগতি — অন্যদের তুলে আমরা উঠি',
+     gen:{millennial:2,boomer:1},country:{europe:2,southasia:2},pers:{empathetic:4,social:3}},
+    {en:'Self-reliance and personal responsibility is the key',bn:'আত্মনির্ভরতা এবং ব্যক্তিগত দায়িত্ব চাবিকাঠি',
+     gen:{genX:3,boomer:2},country:{usa:2,japan:2},pers:{disciplined:3,independent:3}},
+   ]},
+  {cat:'tech', catLabel:{en:'🔌 Technology',bn:'🔌 প্রযুক্তি'},
+   en:'What\'s your vision for the next 10 years of your life?',
+   bn:'আপনার জীবনের পরবর্তী ১০ বছরের জন্য আপনার দৃষ্টিভঙ্গি কী?',
+   opts:[
+    {en:'Global nomad — remote work, multiple countries, total freedom',bn:'গ্লোবাল নোম্যাড — রিমোট কাজ, একাধিক দেশ, সম্পূর্ণ স্বাধীনতা',
+     gen:{z:3,millennial:2},country:{global:5},pers:{independent:4,creative:2}},
+    {en:'Build an empire — company, brand, real impact at scale',bn:'সাম্রাজ্য গড়া — কোম্পানি, ব্র্যান্ড, বড় প্রভাব',
+     gen:{millennial:3,z:1},country:{usa:3,korea:2},pers:{disciplined:3,analytical:2,creative:1}},
+    {en:'Deep expertise and mastery in one specific domain',bn:'একটি নির্দিষ্ট ডোমেনে গভীর দক্ষতা এবং পারদর্শিতা',
+     gen:{genX:3,millennial:1},country:{japan:4,europe:1},pers:{disciplined:4,analytical:3}},
+    {en:'Happy family, stable income, meaningful community',bn:'সুখী পরিবার, স্থিতিশীল আয়, অর্থবহ সম্প্রদায়',
+     gen:{boomer:3,genX:1},country:{southasia:3,europe:2},pers:{empathetic:3,social:2,disciplined:1}},
+   ]},
+];
+
+// ===== STATE =====
+let lang = 'en';
+let theme = 'dark';
+let currentQ = 0;
+let answers = new Array(questions.length).fill(null).map(()=>[]);
+let scores = {};
+
+// ===== INIT =====
+function toggleTheme(){
+  theme = theme==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',theme);
+  document.getElementById('themeBtn').textContent = theme==='dark'? T[lang].themeLight : T[lang].themeDark;
+}
+function toggleLang(){
+  lang = lang==='en'?'bn':'en';
+  document.getElementById('langBtn').textContent = T[lang].langBtn;
+  document.getElementById('themeBtn').textContent = theme==='dark'? T[lang].themeLight : T[lang].themeDark;
+  applyLang();
+  if(!document.getElementById('screen-quiz').classList.contains('hidden')) renderQuestion();
+}
+function applyLang(){
+  const t = T[lang];
+  document.getElementById('h-badge').textContent = t.badge;
+  document.getElementById('h-title').innerHTML = lang==='en'?'Discover Your<br>Generation Mindset':'আপনার প্রজন্মের মানসিকতা আবিষ্কার করুন';
+  document.getElementById('h-desc').textContent = t.desc;
+  document.getElementById('s1').textContent = t.s1;
+  document.getElementById('s2').textContent = t.s2;
+  document.getElementById('s3').textContent = t.s3;
+  document.getElementById('h-btn').textContent = t.startBtn;
+  document.getElementById('f1t').textContent = t.f1t;
+  document.getElementById('f1d').textContent = t.f1d;
+  document.getElementById('f2t').textContent = t.f2t;
+  document.getElementById('f2d').textContent = t.f2d;
+  document.getElementById('f3t').textContent = t.f3t;
+  document.getElementById('f3d').textContent = t.f3d;
+  document.getElementById('f4t').textContent = t.f4t;
+  document.getElementById('f4d').textContent = t.f4d;
+  document.getElementById('rl1').textContent = t.rl1;
+  document.getElementById('rl2').textContent = t.rl2;
+  document.getElementById('rl3').textContent = t.rl3;
+  document.getElementById('rl4').textContent = t.rl4;
+  document.getElementById('rl5').textContent = t.rl5;
+  document.getElementById('rl6').textContent = t.rl6;
+  document.getElementById('rl7').textContent = t.rl7;
+  document.getElementById('rl-era').textContent = t.rEra;
+  document.getElementById('era-why-title').textContent = t.rEraWhy;
+  document.getElementById('rb1').textContent = t.rb1;
+  document.getElementById('rb2').textContent = t.rb2;
+  document.getElementById('rb3').textContent = t.rb3;
+  document.getElementById('r-badge-text').textContent = t.resBadge;
+  const rt = document.getElementById('r-tagline');
+  if(rt) rt.textContent = t.resTagline;
+}
+
+function showScreen(id){
+  ['hero','quiz','loading','results'].forEach(s=>{
+    document.getElementById('screen-'+s).classList.toggle('hidden', s!==id);
+  });
+}
+
+function startQuiz(){
+  answers = new Array(questions.length).fill(null).map(()=>[]);
+  currentQ = 0;
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = questions[currentQ];
+  const t = T[lang];
+  const total = questions.length;
+  const pct = Math.round((currentQ/total)*100);
+  document.getElementById('prog-label').textContent = `${t.progLabel} ${currentQ+1} ${t.progOf} ${total}`;
+  document.getElementById('prog-pct').textContent = pct+'%';
+  document.getElementById('prog-fill').style.width = pct+'%';
+  const catTag = document.getElementById('cat-tag');
+  catTag.textContent = q.catLabel[lang];
+  catTag.className = 'category-tag cat-'+q.cat;
+  document.getElementById('q-num').textContent = String(currentQ+1).padStart(2,'0');
+  document.getElementById('q-text').textContent = q[lang];
+  const oc = document.getElementById('options-container');
+  oc.innerHTML = '';
+  // Multi-select hint
+  const hint = document.createElement('div');
+  hint.style.cssText='font-size:0.75rem;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:6px;';
+  hint.innerHTML = `<span style="background:var(--glow);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:2px 8px;font-size:0.7rem;font-weight:700;">${lang==='en'?'MULTI-SELECT':'মাল্টি-সিলেক্ট'}</span>${lang==='en'?'Select all that apply to you':'আপনার সাথে মিলে এমন সব বিকল্প বেছে নিন'}`;
+  oc.appendChild(hint);
+  const letters = ['A','B','C','D'];
+  q.opts.forEach((opt,i)=>{
+    const isSelected = answers[currentQ].includes(i);
+    const div = document.createElement('div');
+    div.className = 'opt'+(isSelected?' selected':'');
+    div.innerHTML = `<div class="opt-letter">${isSelected?'✓':letters[i]}</div><span>${opt[lang]}</span>`;
+    div.onclick = ()=>selectOpt(i);
+    oc.appendChild(div);
+  });
+  document.getElementById('btn-prev').disabled = currentQ===0;
+  const nextBtn = document.getElementById('btn-next');
+  nextBtn.textContent = currentQ===total-1 ? t.submit : t.next;
+}
+
+function selectOpt(i){
+  const arr = answers[currentQ];
+  const idx = arr.indexOf(i);
+  if(idx===-1){ arr.push(i); } else { arr.splice(idx,1); }
+  // Re-render options only
+  const letters = ['A','B','C','D'];
+  document.querySelectorAll('.opt').forEach((el,elIdx)=>{
+    const isSelected = arr.includes(elIdx);
+    el.classList.toggle('selected', isSelected);
+    el.querySelector('.opt-letter').textContent = isSelected ? '✓' : letters[elIdx];
+  });
+}
+
+function prevQ(){if(currentQ>0){currentQ--;renderQuestion();}}
+function nextQ(){
+  if(answers[currentQ].length===0){
+    showToast(lang==='en'?'Please select at least one answer!':'কমপক্ষে একটি উত্তর বেছে নিন!');return;
+  }
+  if(currentQ<questions.length-1){currentQ++;renderQuestion();}
+  else{analyzeResults();}
+}
+
+// ===== ANALYSIS ENGINE =====
+function analyzeResults(){
+  showScreen('loading');
+  const steps = T[lang].loadSteps;
+  document.getElementById('l-title').textContent = T[lang].loadTitle;
+  document.getElementById('l-sub').textContent = T[lang].loadSub;
+  const sc = document.getElementById('loading-steps');
+  sc.innerHTML = '';
+  steps.forEach((s,i)=>{
+    const div = document.createElement('div');
+    div.className = 'loading-step';
+    div.style.animationDelay = (i*0.6+0.3)+'s';
+    div.innerHTML = `<div class="dot"></div><span>${s}</span>`;
+    sc.appendChild(div);
+  });
+  setTimeout(()=>{computeScores();buildResults();showScreen('results');},3500);
+}
+
+function computeScores(){
+  // Initialize score buckets
+  const gen = {boomer:0,genX:0,millennial:0,z:0,alpha:0};
+  const country = {usa:0,korea:0,japan:0,europe:0,global:0,southasia:0};
+  const pers = {analytical:0,creative:0,social:0,independent:0,disciplined:0,empathetic:0};
+  answers.forEach((selectedArr,qi)=>{
+    if(!selectedArr||selectedArr.length===0)return;
+    selectedArr.forEach(ans=>{
+      const opt = questions[qi].opts[ans];
+      if(opt.gen) Object.keys(opt.gen).forEach(k=>gen[k]=(gen[k]||0)+opt.gen[k]);
+      if(opt.country) Object.keys(opt.country).forEach(k=>country[k]=(country[k]||0)+opt.country[k]);
+      if(opt.pers) Object.keys(opt.pers).forEach(k=>pers[k]=(pers[k]||0)+opt.pers[k]);
+    });
+  });
+  scores = {gen,country,pers};
+}
+
+function topKey(obj){return Object.keys(obj).sort((a,b)=>obj[b]-obj[a])[0];}
+function topTwo(obj){const k=Object.keys(obj).sort((a,b)=>obj[b]-obj[a]);return[k[0],k[1]];}
+
+// Generation profiles
+const genProfiles = {
+  boomer:{
+    label:{en:'Traditional Wisdom Keeper',bn:'ঐতিহ্যবাহী জ্ঞানের রক্ষক'},
+    emoji:'🏛️',
+    desc:{en:'You carry the mindset of those who built the foundations — disciplined, loyal, and grounded in proven methods. You value stability, family, and real-world experience over hype.',bn:'আপনি ভিত্তি গড়েছিলেন তাদের মানসিকতা বহন করেন — শৃঙ্খলাবদ্ধ, বিশ্বস্ত এবং প্রমাণিত পদ্ধতিতে ভিত্তিগত।'},
+  },
+  genX:{
+    label:{en:'Independent Realist',bn:'স্বাধীন বাস্তববাদী'},
+    emoji:'⚖️',
+    desc:{en:'Skeptical, self-reliant, and highly adaptable. You saw the world change drastically and learned to navigate chaos without a map. You don\'t need validation — results speak for you.',bn:'সন্দেহবাদী, স্বনির্ভর এবং অত্যন্ত অভিযোজনযোগ্য। আপনি বিশ্বকে ব্যাপকভাবে পরিবর্তন হতে দেখেছেন।'},
+  },
+  millennial:{
+    label:{en:'Purpose-Driven Builder',bn:'উদ্দেশ্য-চালিত নির্মাতা'},
+    emoji:'🌱',
+    desc:{en:'Collaborative, experience-driven, and obsessed with purpose and meaning. You want to build something that matters. You\'re the bridge between the analog past and digital future.',bn:'সহযোগিতামূলক, অভিজ্ঞতা-চালিত এবং উদ্দেশ্য ও অর্থে আচ্ছন্ন।'},
+  },
+  z:{
+    label:{en:'Digital Native Changemaker',bn:'ডিজিটাল নেটিভ পরিবর্তনকারী'},
+    emoji:'⚡',
+    desc:{en:'Authenticity, mental health, and social impact drive you. You\'re the first generation to grow up entirely online, and you see the world\'s problems clearly — and want to fix them.',bn:'সত্যতা, মানসিক স্বাস্থ্য এবং সামাজিক প্রভাব আপনাকে চালিত করে। আপনি সম্পূর্ণরূপে অনলাইনে বড় হওয়া প্রথম প্রজন্ম।'},
+  },
+  alpha:{
+    label:{en:'Future-Forward Alpha',bn:'ভবিষ্যৎ-কেন্দ্রিক আলফা'},
+    emoji:'🤖',
+    desc:{en:'AI-native, hyper-connected, and thinking at a scale previous generations couldn\'t imagine. You blend digital and physical reality seamlessly and process information at lightning speed.',bn:'AI-নেটিভ, হাইপার-সংযুক্ত এবং পূর্ববর্তী প্রজন্ম কল্পনাও করতে পারেনি এমন স্কেলে চিন্তা করছেন।'},
+  },
+};
+
+// Country/lifestyle profiles
+const countryProfiles = {
+  usa:{
+    label:{en:'🇺🇸 2020 USA Hustle',bn:'🇺🇸 ২০২০ মার্কিন হাসেল'},
+    emoji:'🇺🇸',
+    desc:{en:'Entrepreneurial, ambitious, self-reliant. You believe in meritocracy and building your own path.',bn:'উদ্যোক্তা, উচ্চাকাঙ্ক্ষী, স্বনির্ভর। মেধাতন্ত্রে বিশ্বাস রাখেন।'},
+  },
+  korea:{
+    label:{en:'🇰🇷 2018 Korea Ambition',bn:'🇰🇷 ২০১৮ কোরিয়া উচ্চাকাঙ্ক্ষা'},
+    emoji:'🇰🇷',
+    desc:{en:'High-achieving, trend-aware, image-conscious. You push yourself relentlessly and care deeply about excellence.',bn:'উচ্চ-অর্জনকারী, ট্রেন্ড-সচেতন, ইমেজ-সচেতন।'},
+  },
+  japan:{
+    label:{en:'🇯🇵 2015 Japan Mastery',bn:'🇯🇵 ২০১৫ জাপান দক্ষতা'},
+    emoji:'🇯🇵',
+    desc:{en:'Disciplined, minimalist, mastery-focused. You believe in kaizen — continuous improvement through small daily actions.',bn:'শৃঙ্খলাবদ্ধ, মিনিমালিস্ট, দক্ষতা-কেন্দ্রিক।'},
+  },
+  europe:{
+    label:{en:'🇪🇺 2019 European Balance',bn:'🇪🇺 ২০১৯ ইউরোপীয় ভারসাম্য'},
+    emoji:'🇪🇺',
+    desc:{en:'Work-life balance, sustainability, and progressive values. You believe in living fully, not just working hard.',bn:'কাজ-জীবন ভারসাম্য, টেকসইতা এবং প্রগতিশীল মূল্যবোধ।'},
+  },
+  global:{
+    label:{en:'🌐 2026 Global Digital',bn:'🌐 ২০২৬ গ্লোবাল ডিজিটাল'},
+    emoji:'🌐',
+    desc:{en:'Borderless, AI-integrated, remote-first. Your identity transcends any single nation or culture.',bn:'সীমানাহীন, AI-সমন্বিত, রিমোট-প্রথম। আপনার পরিচয় যেকোনো জাতি বা সংস্কৃতি অতিক্রম করে।'},
+  },
+  southasia:{
+    label:{en:'🌏 2023 South Asia Rising',bn:'🌏 ২০২৩ দক্ষিণ এশিয়া উদীয়মান'},
+    emoji:'🌏',
+    desc:{en:'Collective ambition, family values, and mobile-first entrepreneurship. You\'re building the future while honoring your roots.',bn:'সম্মিলিত উচ্চাকাঙ্ক্ষা, পারিবারিক মূল্যবোধ এবং মোবাইল-প্রথম উদ্যোক্তা।'},
+  },
+};
+
+// Personality profiles
+const persProfiles = {
+  analytical:{
+    label:{en:'The Strategist',bn:'কৌশলবিদ'},
+    emoji:'🧠',
+    desc:{en:'You process the world through data, logic, and systems. Your greatest power is seeing patterns others miss and building solutions that work.',bn:'আপনি ডেটা, যুক্তি এবং সিস্টেমের মাধ্যমে বিশ্ব প্রক্রিয়া করেন।'},
+  },
+  creative:{
+    label:{en:'The Visionary',bn:'দূরদর্শী'},
+    emoji:'🎨',
+    desc:{en:'You imagine futures others can\'t see. Creative, unconventional, and bursting with ideas — your challenge is turning vision into consistent execution.',bn:'আপনি এমন ভবিষ্যৎ কল্পনা করেন যা অন্যরা দেখতে পায় না।'},
+  },
+  social:{
+    label:{en:'The Connector',bn:'সংযোগকারী'},
+    emoji:'🤝',
+    desc:{en:'People are your superpower. You build networks, inspire loyalty, and move things forward through relationships and collaboration.',bn:'মানুষ আপনার সুপারপাওয়ার। আপনি নেটওয়ার্ক গড়েন এবং সম্পর্কের মাধ্যমে এগিয়ে যান।'},
+  },
+  independent:{
+    label:{en:'The Pioneer',bn:'অগ্রগামী'},
+    emoji:'🧭',
+    desc:{en:'Self-reliant, original, and not afraid to walk alone. You chart your own course and inspire others through your willingness to be different.',bn:'স্বনির্ভর, মৌলিক এবং একা চলতে ভয় পান না। আপনি নিজের পথ তৈরি করেন।'},
+  },
+  disciplined:{
+    label:{en:'The Guardian',bn:'অভিভাবক'},
+    emoji:'🛡️',
+    desc:{en:'Consistent, reliable, and deeply committed. You understand that mastery comes from showing up every day, not from occasional bursts of inspiration.',bn:'ধারাবাহিক, নির্ভরযোগ্য এবং গভীরভাবে প্রতিশ্রুতিবদ্ধ।'},
+  },
+  empathetic:{
+    label:{en:'The Empath Leader',bn:'সহানুভূতিশীল নেতা'},
+    emoji:'❤️',
+    desc:{en:'You lead with heart, understand people deeply, and create environments where others feel seen and valued. Your emotional intelligence is your edge.',bn:'আপনি হৃদয় দিয়ে নেতৃত্ব দেন, মানুষকে গভীরভাবে বোঝেন।'},
+  },
+};
+
+// ===== SPECIFIC ERA + CITY MATCH =====
+function getSpecificEraMatch(topGen, topCountry, topPers, secondPers, scoresObj){
+  // Build a composite key from country + personality combo
+  // Each entry: { city, year, flag, pinText, vibe, reasons }
+  const eraDB = {
+    // ===== USA =====
+    usa_analytical_millennial:{
+      en:{city:'San Francisco',year:'2012',flag:'🇺🇸',pinText:'Silicon Valley Era',
+        vibe:'The age of lean startups, A/B testing everything, and "move fast & break things." You\'d thrive in a world of whiteboards, pitch decks, and disrupting legacy industries.',
+        reasons:['Your data-first decision making mirrors the VC-backed analytical culture of early Silicon Valley','Your ambition to build systems that scale reflects the 2012 SF startup mentality','Your structured approach to goals matches the OKR-obsessed culture of that era']},
+      bn:{city:'সান ফ্রান্সিসকো',year:'২০১২',flag:'🇺🇸',pinText:'সিলিকন ভ্যালি যুগ',
+        vibe:'লিন স্টার্টআপ, A/B টেস্টিং এবং "দ্রুত চলুন ও ভাঙুন" এর যুগ। আপনি হোয়াইটবোর্ড, পিচ ডেক এবং লিগেসি শিল্প ভাঙার জগতে উন্নতি করতেন।',
+        reasons:['ডেটা-প্রথম সিদ্ধান্ত গ্রহণ প্রাথমিক সিলিকন ভ্যালির বিশ্লেষণাত্মক সংস্কৃতি প্রতিফলিত করে','সিস্টেম তৈরির উচ্চাকাঙ্ক্ষা ২০১২ সালের SF স্টার্টআপ মানসিকতার সাথে মিলে','লক্ষ্যের প্রতি কাঠামোবদ্ধ পদ্ধতি সেই যুগের OKR-আচ্ছন্ন সংস্কৃতির সাথে মেলে']},
+    },
+    usa_analytical_genX:{
+      en:{city:'New York',year:'2005',flag:'🇺🇸',pinText:'Wall Street Hustle Era',
+        vibe:'Pre-crash finance, hedge funds, and a world where intelligence and relentlessness were the only currencies. Logical, cutthroat, and obsessively results-driven.',
+        reasons:['Your logical, systems-based thinking mirrors the Wall Street quant culture','Your high risk tolerance combined with analytical depth reflects pre-2008 financial Manhattan','Your independent streak matches the New York "figure it out yourself" ethos of that era']},
+      bn:{city:'নিউ ইয়র্ক',year:'২০০৫',flag:'🇺🇸',pinText:'ওয়াল স্ট্রিট হাসেল যুগ',
+        vibe:'ক্র্যাশ-পূর্ব ফিনান্স, হেজ ফান্ড এবং এমন বিশ্ব যেখানে বুদ্ধিমত্তা ও অক্লান্ত পরিশ্রমই একমাত্র মুদ্রা।',
+        reasons:['যৌক্তিক, সিস্টেম-ভিত্তিক চিন্তা ওয়াল স্ট্রিট কোয়ান্ট সংস্কৃতির প্রতিফলন','বিশ্লেষণাত্মক গভীরতার সাথে উচ্চ ঝুঁকি সহনশীলতা ২০০৮-পূর্ব ম্যানহাটন প্রতিফলিত করে','স্বাধীন ধারা নিউ ইয়র্কের "নিজে বের করো" মনোভাব প্রতিফলিত করে']},
+    },
+    usa_creative_z:{
+      en:{city:'Los Angeles',year:'2022',flag:'🇺🇸',pinText:'Creator Economy Boom',
+        vibe:'A city of reinvention, content creation, and monetized identity. Everyone is a brand, every story is a product, and virality is the new Hollywood deal.',
+        reasons:['Your content-first mindset and creative vision matches LA\'s post-pandemic creator explosion','Your comfort with social platforms as career tools mirrors the 2022 influencer-economy boom','Your authenticity-driven values align with the shift from polished to raw, real content']},
+      bn:{city:'লস এঞ্জেলেস',year:'২০২২',flag:'🇺🇸',pinText:'ক্রিয়েটর ইকোনমি বুম',
+        vibe:'পুনঃউদ্ভাবন, কনটেন্ট তৈরি এবং মনিটাইজড পরিচয়ের শহর। সবাই একটি ব্র্যান্ড, প্রতিটি গল্প একটি পণ্য।',
+        reasons:['কনটেন্ট-প্রথম মানসিকতা LA-র মহামারী-পরবর্তী ক্রিয়েটর বিস্ফোরণের সাথে মেলে','সোশ্যাল প্ল্যাটফর্মে স্বাচ্ছন্দ্য ২০২২ ইনফ্লুয়েন্সার-ইকোনমির প্রতিফলন','সত্যতা-চালিত মূল্যবোধ রিয়েল কনটেন্টের দিকে পরিবর্তনের সাথে মেলে']},
+    },
+    usa_social_millennial:{
+      en:{city:'New York',year:'2019',flag:'🇺🇸',pinText:'Peak Networking Era',
+        vibe:'Pre-pandemic New York — packed co-working spaces, rooftop networking events, and the relentless belief that who you know is as important as what you know.',
+        reasons:['Your extroverted networking style perfectly mirrors the 2019 NYC hustle-networking culture','Your purpose-driven goals align with the meaning-over-money millennial shift of that period','Your collaborative nature matches the WeWork era\'s obsession with community and connection']},
+      bn:{city:'নিউ ইয়র্ক',year:'২০১৯',flag:'🇺🇸',pinText:'পিক নেটওয়ার্কিং যুগ',
+        vibe:'মহামারী-পূর্ব নিউ ইয়র্ক — কো-ওয়ার্কিং স্পেস, রুফটপ নেটওয়ার্কিং ইভেন্ট।',
+        reasons:['এক্সট্রোভার্টেড নেটওয়ার্কিং স্টাইল ২০১৯ NYC হাসেল সংস্কৃতির সাথে মেলে','উদ্দেশ্য-চালিত লক্ষ্য মিলেনিয়াল অর্থ-অর্থের পরিবর্তনের সাথে মেলে','সহযোগিতামূলক প্রকৃতি WeWork যুগের সম্প্রদায়ের সাথে মেলে']},
+    },
+    usa_independent_z:{
+      en:{city:'Austin, Texas',year:'2021',flag:'🇺🇸',pinText:'Freedom Migration Era',
+        vibe:'The remote work revolution meets anti-establishment spirit. Austin 2021 was where free thinkers, tech nomads, and anti-conformists built new lives outside traditional hubs.',
+        reasons:['Your independent, self-reliant mindset matches Austin\'s rebellious anti-establishment wave','Your remote-first lifestyle vision aligns perfectly with the 2021 digital nomad migration','Your preference for building on your own terms reflects the Austin entrepreneurial boom']},
+      bn:{city:'অস্টিন, টেক্সাস',year:'২০২১',flag:'🇺🇸',pinText:'স্বাধীনতা মাইগ্রেশন যুগ',
+        vibe:'রিমোট ওয়ার্ক বিপ্লব মুক্ত চিন্তার মনোভাবের সাথে মিলিত। অস্টিন ২০২১ ছিল মুক্ত চিন্তকদের নতুন জীবন গড়ার জায়গা।',
+        reasons:['স্বনির্ভর মানসিকতা অস্টিনের বিরোধী-প্রতিষ্ঠান তরঙ্গের সাথে মেলে','রিমোট-প্রথম জীবনধারার দৃষ্টিভঙ্গি ২০২১ ডিজিটাল নোম্যাড মাইগ্রেশনের সাথে মেলে','নিজের শর্তে গড়ার পছন্দ অস্টিন উদ্যোক্তা বুমের প্রতিফলন']},
+    },
+    usa_disciplined_millennial:{
+      en:{city:'Chicago',year:'2016',flag:'🇺🇸',pinText:'Midwest Grind Era',
+        vibe:'No hype, no flash — just consistent, methodical execution. Chicago 2016 rewarded the unglamorous work: systems, processes, and the daily discipline that compounds over years.',
+        reasons:['Your relentless consistency mirrors Chicago\'s "work ethic over image" cultural identity','Your structured goal-setting reflects the disciplined corporate-meets-startup scene of 2016 Chicago','Your long-term thinking aligns with Chicago\'s tradition of building durable institutions, not trends']},
+      bn:{city:'শিকাগো',year:'২০১৬',flag:'🇺🇸',pinText:'মিডওয়েস্ট গ্রাইন্ড যুগ',
+        vibe:'কোনো হাইপ নেই — শুধু ধারাবাহিক, পদ্ধতিগত বাস্তবায়ন। শিকাগো ২০১৬ পরিশ্রমকে পুরস্কৃত করেছিল।',
+        reasons:['অক্লান্ত ধারাবাহিকতা শিকাগোর "কাজের নীতি" পরিচয়ের সাথে মেলে','কাঠামোবদ্ধ লক্ষ্য নির্ধারণ ২০১৬ শিকাগোর শৃঙ্খলাবদ্ধ দৃশ্যের প্রতিফলন','দীর্ঘমেয়াদী চিন্তা শিকাগোর টেকসই প্রতিষ্ঠান গড়ার ঐতিহ্যের সাথে মেলে']},
+    },
+    usa_empathetic_z:{
+      en:{city:'Portland',year:'2020',flag:'🇺🇸',pinText:'Values Revolution Era',
+        vibe:'A city reshaped by activism, radical empathy, and the belief that systems must change. Portland 2020 was the epicenter of emotional intelligence entering public consciousness.',
+        reasons:['Your deep empathy and social awareness mirrors Portland\'s values-first cultural revolution','Your concern for global issues aligns with the 2020 social justice awakening across US cities','Your emotional depth and people-first approach reflects the mental health movement\'s rise']},
+      bn:{city:'পোর্টল্যান্ড',year:'২০২০',flag:'🇺🇸',pinText:'মূল্যবোধ বিপ্লব যুগ',
+        vibe:'সক্রিয়তা, আমূল সহানুভূতি এবং পরিবর্তনের বিশ্বাস দ্বারা রূপান্তরিত শহর।',
+        reasons:['গভীর সহানুভূতি পোর্টল্যান্ডের মূল্যবোধ-প্রথম সাংস্কৃতিক বিপ্লবের সাথে মেলে','বৈশ্বিক সমস্যার উদ্বেগ ২০২০ সামাজিক ন্যায়বিচার জাগরণের সাথে মেলে','আবেগীয় গভীরতা মানসিক স্বাস্থ্য আন্দোলনের উত্থান প্রতিফলিত করে']},
+    },
+    // ===== KOREA =====
+    korea_disciplined_z:{
+      en:{city:'Seoul',year:'2018',flag:'🇰🇷',pinText:'K-Hustle Zenith Era',
+        vibe:'The peak of Korean ambition — 12-hour study sessions, hyper-competitive university entrance, and a society that treats excellence as the bare minimum. Pressure forges diamonds.',
+        reasons:['Your iron discipline and consistency mirrors Seoul\'s culture of structured, relentless self-improvement','Your goal of public recognition and achievement aligns with Korea\'s performance-oriented 2018 mindset','Your high standards and perfectionist streak matches the "최선을 다하다" (give your absolute best) ethos']},
+      bn:{city:'সিউল',year:'২০১৮',flag:'🇰🇷',pinText:'K-হাসেল জেনিথ যুগ',
+        vibe:'কোরিয়ান উচ্চাকাঙ্ক্ষার শীর্ষ — ১২ ঘণ্টার পড়াশোনা সেশন এবং শ্রেষ্ঠত্বকে ন্যূনতম মানদণ্ড হিসেবে বিবেচনা করা সমাজ।',
+        reasons:['লৌহ শৃঙ্খলা সিউলের কাঠামোবদ্ধ, অক্লান্ত আত্ম-উন্নয়নের সংস্কৃতির সাথে মেলে','কৃতিত্বের লক্ষ্য কোরিয়ার পারফরম্যান্স-ভিত্তিক মানসিকতার সাথে মেলে','উচ্চ মান এবং নিখুঁততার ধারা "সেরাটা দাও" নীতির সাথে মেলে']},
+    },
+    korea_creative_z:{
+      en:{city:'Seoul',year:'2023',flag:'🇰🇷',pinText:'K-Content Global Era',
+        vibe:'K-pop, K-drama, K-beauty — Korean creative culture conquered the world. Seoul 2023 was the city where art, commerce, and personal brand merged into one unstoppable force.',
+        reasons:['Your creative vision and desire for public recognition perfectly mirrors K-content\'s global takeover','Your digital-native approach matches Seoul\'s seamless blend of online identity and real-world impact','Your trend-awareness and visual aesthetics align with K-culture\'s obsessive attention to presentation']},
+      bn:{city:'সিউল',year:'২০২৩',flag:'🇰🇷',pinText:'K-কনটেন্ট গ্লোবাল যুগ',
+        vibe:'K-পপ, K-ড্রামা, K-বিউটি — কোরিয়ান সৃজনশীল সংস্কৃতি বিশ্ব জয় করেছে।',
+        reasons:['সৃজনশীল দৃষ্টিভঙ্গি এবং স্বীকৃতির আকাঙ্ক্ষা K-কনটেন্টের বৈশ্বিক দখলের সাথে মেলে','ডিজিটাল-নেটিভ পদ্ধতি সিউলের অনলাইন পরিচয়ের সাথে মেলে','ট্রেন্ড-সচেতনতা K-সংস্কৃতির উপস্থাপনায় মনোযোগের সাথে মেলে']},
+    },
+    korea_analytical_millennial:{
+      en:{city:'Seoul',year:'2015',flag:'🇰🇷',pinText:'Startup Korea Renaissance',
+        vibe:'Korea\'s first startup boom — chaebols were being challenged by lean tech companies. Analytical minds with global vision were the architects of Korea\'s digital transformation.',
+        reasons:['Your strategic, data-driven mindset mirrors the rise of analytical Korean tech founders','Your global lifestyle awareness matches Korea 2015\'s obsession with competing on the world stage','Your disciplined execution aligns with the methodical Korean approach to market disruption']},
+      bn:{city:'সিউল',year:'২০১৫',flag:'🇰🇷',pinText:'স্টার্টআপ কোরিয়া রেনেসাঁ',
+        vibe:'কোরিয়ার প্রথম স্টার্টআপ বুম — চেবলগুলো দুর্বল প্রযুক্তি কোম্পানি দ্বারা চ্যালেঞ্জ হচ্ছিল।',
+        reasons:['কৌশলগত, ডেটা-চালিত মানসিকতা বিশ্লেষণাত্মক কোরিয়ান প্রযুক্তি প্রতিষ্ঠাতাদের উত্থানের সাথে মেলে','বৈশ্বিক সচেতনতা কোরিয়া ২০১৫-র বিশ্ব মঞ্চে প্রতিযোগিতার সাথে মেলে','শৃঙ্খলাবদ্ধ বাস্তবায়ন পদ্ধতিগত কোরিয়ান পদ্ধতির সাথে মেলে']},
+    },
+    // ===== JAPAN =====
+    japan_disciplined_genX:{
+      en:{city:'Tokyo',year:'2008',flag:'🇯🇵',pinText:'Kaizen Mastery Era',
+        vibe:'Japan\'s disciplined excellence at its purest — where artisans spend decades perfecting a single craft, and the highest compliment is that your work shows you truly care.',
+        reasons:['Your exceptional consistency and attention to detail mirrors the Japanese kaizen philosophy','Your preference for mastery over recognition reflects Tokyo\'s culture of quiet, earned excellence','Your long-term structured thinking matches Japan\'s generational approach to building lasting quality']},
+      bn:{city:'টোকিও',year:'২০০৮',flag:'🇯🇵',pinText:'কাইজেন দক্ষতা যুগ',
+        vibe:'জাপানের শৃঙ্খলাবদ্ধ শ্রেষ্ঠত্ব সবচেয়ে বিশুদ্ধ আকারে — যেখানে কারিগররা দশক ধরে একটি শিল্পকলা পরিমার্জন করেন।',
+        reasons:['অসাধারণ ধারাবাহিকতা এবং বিস্তারিত মনোযোগ জাপানি কাইজেন দর্শনের প্রতিফলন','দক্ষতার পছন্দ টোকিওর শান্ত, অর্জিত শ্রেষ্ঠত্বের সংস্কৃতির প্রতিফলন','দীর্ঘমেয়াদী কাঠামোবদ্ধ চিন্তা জাপানের প্রজন্ম পদ্ধতির সাথে মেলে']},
+    },
+    japan_analytical_boomer:{
+      en:{city:'Tokyo',year:'2000',flag:'🇯🇵',pinText:'Precision Economy Era',
+        vibe:'The era of Toyota\'s lean production perfected, Sony at its peak, and the philosophy that perfection in process leads to perfection in product. Logic, order, and precision above all.',
+        reasons:['Your deep analytical thinking mirrors Japan\'s evidence-based, zero-defect production philosophy','Your preference for structure and proven methods reflects the corporate precision culture of 2000s Tokyo','Your risk-aversion with careful planning matches the "nemawashi" (consensus-building) decision culture']},
+      bn:{city:'টোকিও',year:'২০০০',flag:'🇯🇵',pinText:'নির্ভুলতা অর্থনীতি যুগ',
+        vibe:'Toyota-র লিন উৎপাদন পরিপূর্ণতার যুগ এবং প্রক্রিয়ায় নিখুঁততা পণ্যে নিখুঁততা নিয়ে আসে এই দর্শন।',
+        reasons:['গভীর বিশ্লেষণাত্মক চিন্তা জাপানের প্রমাণ-ভিত্তিক দর্শনের প্রতিফলন','কাঠামো এবং প্রমাণিত পদ্ধতির পছন্দ ২০০০-এর দশকের টোকিওর সাথে মেলে','সতর্ক পরিকল্পনা "নেমাওয়াশি" সিদ্ধান্ত সংস্কৃতির সাথে মেলে']},
+    },
+    japan_independent_genX:{
+      en:{city:'Kyoto',year:'2015',flag:'🇯🇵',pinText:'Wabi-Sabi Wisdom Era',
+        vibe:'The ancient capital reimagined — minimalist makers, artisan rebels, and digital nomads who chose depth over speed. Kyoto 2015 rewarded those who walked their own path with quiet confidence.',
+        reasons:['Your self-reliance and original thinking mirrors Kyoto\'s tradition of independent artisan mastery','Your minimalist tendencies and preference for depth align with the wabi-sabi philosophy of imperfect beauty','Your resistance to mainstream trends reflects Kyoto\'s proud rejection of superficial Tokyo modernity']},
+      bn:{city:'কিয়োটো',year:'২০১৫',flag:'🇯🇵',pinText:'ওয়াবি-সাবি জ্ঞানের যুগ',
+        vibe:'প্রাচীন রাজধানী পুনর্কল্পিত — মিনিমালিস্ট নির্মাতা এবং কারিগর বিদ্রোহীরা যারা গতির চেয়ে গভীরতা বেছে নিয়েছেন।',
+        reasons:['আত্মনির্ভরতা এবং মৌলিক চিন্তা কিয়োটোর স্বাধীন কারিগর দক্ষতার ঐতিহ্যের সাথে মেলে','মিনিমালিস্ট প্রবণতা ওয়াবি-সাবি দর্শনের সাথে মেলে','মূলধারার প্রতিরোধ কিয়োটোর টোকিও আধুনিকতার প্রত্যাখ্যানের প্রতিফলন']},
+    },
+    japan_empathetic_millennial:{
+      en:{city:'Osaka',year:'2019',flag:'🇯🇵',pinText:'Omotenashi Heart Era',
+        vibe:'Osaka\'s legendary "omotenashi" — radical hospitality and genuine care for others — meets the millennial values of empathy and purpose. The art of making people feel warmly at home.',
+        reasons:['Your deep empathy and people-first approach mirrors Osaka\'s legendary culture of caring for others','Your emotional intelligence and relationship-building reflect the omotenashi (hospitality) philosophy','Your desire for meaningful impact aligns with Osaka\'s community-centered approach to life and work']},
+      bn:{city:'ওসাকা',year:'২০১৯',flag:'🇯🇵',pinText:'ওমোতেনাশি হার্ট যুগ',
+        vibe:'ওসাকার কিংবদন্তি "ওমোতেনাশি" — আমূল আতিথেয়তা এবং অন্যদের জন্য খাঁটি যত্ন।',
+        reasons:['গভীর সহানুভূতি ওসাকার কিংবদন্তি অন্যদের যত্ন নেওয়ার সংস্কৃতির সাথে মেলে','আবেগীয় বুদ্ধিমত্তা ওমোতেনাশি দর্শনের প্রতিফলন','অর্থবহ প্রভাবের আকাঙ্ক্ষা ওসাকার সম্প্রদায়-কেন্দ্রিক পদ্ধতির সাথে মেলে']},
+    },
+    // ===== EUROPE =====
+    europe_social_millennial:{
+      en:{city:'Amsterdam',year:'2019',flag:'🇳🇱',pinText:'Progressive Harmony Era',
+        vibe:'The world\'s most socially advanced city at its peak — where work-life integration, radical tolerance, and the belief that people matter more than profits shaped everyday life.',
+        reasons:['Your social intelligence and network-building mirrors Amsterdam\'s world-famous community culture','Your values around balance, empathy, and collaboration align with the Dutch "gezelligheid" (cozy togetherness)','Your progressive worldview and global awareness reflects Amsterdam\'s role as Europe\'s liberal capital']},
+      bn:{city:'আমস্টারডাম',year:'২০১৯',flag:'🇳🇱',pinText:'প্রগতিশীল সম্প্রীতি যুগ',
+        vibe:'বিশ্বের সবচেয়ে সামাজিকভাবে উন্নত শহর — কাজ-জীবন একীভূতকরণ এবং মানুষ মুনাফার চেয়ে বেশি গুরুত্বপূর্ণ এই বিশ্বাস।',
+        reasons:['সামাজিক বুদ্ধিমত্তা আমস্টারডামের বিশ্বখ্যাত সম্প্রদায় সংস্কৃতির সাথে মেলে','মূল্যবোধ ডাচ "গেজেলিগহেইড" (আরামদায়ক একতা) এর সাথে মেলে','প্রগতিশীল বিশ্বদৃষ্টিভঙ্গি ইউরোপের উদার রাজধানীর সাথে মেলে']},
+    },
+    europe_creative_z:{
+      en:{city:'Berlin',year:'2022',flag:'🇩🇪',pinText:'Alt-Culture Renaissance',
+        vibe:'Berlin\'s legendary underground meets the new creative class — a city that celebrates weirdness, raw creativity, and building culture outside the mainstream. Anti-Instagram, pro-meaning.',
+        reasons:['Your unconventional creative vision perfectly mirrors Berlin\'s celebrated culture of artistic rebellion','Your authenticity-first values align with Berlin\'s rejection of polished, commercial aesthetics','Your independent thinking reflects the Berlin ethos of creating for art\'s sake, not algorithmic approval']},
+      bn:{city:'বার্লিন',year:'২০২২',flag:'🇩🇪',pinText:'অল্ট-কালচার রেনেসাঁ',
+        vibe:'বার্লিনের কিংবদন্তি আন্ডারগ্রাউন্ড নতুন সৃজনশীল শ্রেণীর সাথে মিলিত — বিজোড়তা এবং কাঁচা সৃজনশীলতা উদযাপনকারী শহর।',
+        reasons:['অপ্রচলিত সৃজনশীল দৃষ্টিভঙ্গি বার্লিনের শিল্পী বিদ্রোহের সংস্কৃতির সাথে মেলে','সত্যতা-প্রথম মূল্যবোধ বার্লিনের বাণিজ্যিক নান্দনিকতার প্রত্যাখ্যানের সাথে মেলে','স্বাধীন চিন্তা বার্লিনের শিল্পের জন্য তৈরির নীতির প্রতিফলন']},
+    },
+    europe_analytical_genX:{
+      en:{city:'London',year:'2010',flag:'🇬🇧',pinText:'Post-Crisis Rebuilding Era',
+        vibe:'Post-2008 London — where razor-sharp analytical minds rebuilt financial systems and reimagined institutions. Intelligence, pragmatism, and stoic resilience defined this era.',
+        reasons:['Your analytical depth and systems thinking mirrors London\'s post-crisis intellectual rebuilding','Your pragmatic, evidence-based decisions reflect the British "muddling through with intelligence" tradition','Your risk-awareness combined with ambition matches the measured optimism of London\'s recovery years']},
+      bn:{city:'লন্ডন',year:'২০১০',flag:'🇬🇧',pinText:'সংকট-পরবর্তী পুনর্নির্মাণ যুগ',
+        vibe:'২০০৮-পরবর্তী লন্ডন — যেখানে তীক্ষ্ণ বিশ্লেষণাত্মক মন আর্থিক সিস্টেম পুনর্নির্মাণ করেছে।',
+        reasons:['বিশ্লেষণাত্মক গভীরতা লন্ডনের সংকট-পরবর্তী বুদ্ধিবৃত্তিক পুনর্নির্মাণের সাথে মেলে','প্রমাণ-ভিত্তিক সিদ্ধান্ত ব্রিটিশ "বুদ্ধি দিয়ে পার হওয়া" ঐতিহ্যের প্রতিফলন','ঝুঁকি-সচেতনতা লন্ডনের পুনরুদ্ধারের বছরগুলোর পরিমিত আশাবাদের সাথে মেলে']},
+    },
+    europe_empathetic_millennial:{
+      en:{city:'Copenhagen',year:'2021',flag:'🇩🇰',pinText:'Nordic Wellbeing Era',
+        vibe:'The world\'s happiest city during its defining decade — where hygge, psychological safety, and the radical belief that human wellbeing is the ultimate metric reshaped how people work and live.',
+        reasons:['Your empathetic leadership and people-first values align with Copenhagen\'s human-centered design philosophy','Your mental health awareness mirrors Denmark\'s pioneering investment in psychological wellbeing at work','Your collectivist instincts reflect the Nordic model\'s belief in lifting everyone, not just the top']},
+      bn:{city:'কোপেনহেগেন',year:'২০২১',flag:'🇩🇰',pinText:'নর্ডিক সুস্থতা যুগ',
+        vibe:'বিশ্বের সুখী শহর — যেখানে হাইগ এবং মানব সুস্থতাই চূড়ান্ত মেট্রিক।',
+        reasons:['সহানুভূতিশীল নেতৃত্ব কোপেনহেগেনের মানব-কেন্দ্রিক দর্শনের সাথে মেলে','মানসিক স্বাস্থ্য সচেতনতা ডেনমার্কের মনস্তাত্ত্বিক সুস্থতায় বিনিয়োগের সাথে মেলে','সমষ্টিবাদী প্রবৃত্তি নর্ডিক মডেলের বিশ্বাসের প্রতিফলন']},
+    },
+    europe_independent_millennial:{
+      en:{city:'Barcelona',year:'2017',flag:'🇪🇸',pinText:'Indie Entrepreneur Era',
+        vibe:'Sun, freedom, and the courage to build something entirely your own. Barcelona 2017 attracted digital pioneers who wanted beautiful surroundings while disrupting industries from a laptop.',
+        reasons:['Your independent entrepreneurial spirit mirrors Barcelona\'s thriving indie startup and remote-worker culture','Your love of experience and adventure aligns with the Barcelona lifestyle of work hard, live beautifully','Your creative independence reflects the Catalan tradition of proud originality and self-determination']},
+      bn:{city:'বার্সেলোনা',year:'২০১৭',flag:'🇪🇸',pinText:'ইন্ডি উদ্যোক্তা যুগ',
+        vibe:'সূর্য, স্বাধীনতা এবং সম্পূর্ণ নিজস্ব কিছু গড়ার সাহস।',
+        reasons:['স্বাধীন উদ্যোক্তা মনোভাব বার্সেলোনার ইন্ডি স্টার্টআপ সংস্কৃতির সাথে মেলে','অভিজ্ঞতা এবং অ্যাডভেঞ্চারের ভালোবাসা বার্সেলোনার জীবনধারার সাথে মেলে','সৃজনশীল স্বাধীনতা কাতালান ঐতিহ্যের প্রতিফলন']},
+    },
+    // ===== GLOBAL / DIGITAL =====
+    global_analytical_z:{
+      en:{city:'Singapore',year:'2024',flag:'🇸🇬',pinText:'Global Intelligence Hub',
+        vibe:'The world\'s smartest city-state leads the AI age — where data, global strategy, and meritocracy converge. No borders, only capability. The future of governance meets the future of business.',
+        reasons:['Your analytical, globally-aware mindset mirrors Singapore\'s hyper-efficient, merit-based governance model','Your comfort with AI and technology aligns with Singapore\'s identity as the world\'s top smart city','Your borderless worldview matches Singapore\'s status as the crossroads of East-West intelligence']},
+      bn:{city:'সিঙ্গাপুর',year:'২০২৪',flag:'🇸🇬',pinText:'গ্লোবাল ইন্টেলিজেন্স হাব',
+        vibe:'বিশ্বের সবচেয়ে স্মার্ট শহর-রাষ্ট্র AI যুগে নেতৃত্ব দেয় — ডেটা, বৈশ্বিক কৌশল এবং মেধাতন্ত্র একত্রিত।',
+        reasons:['বিশ্লেষণাত্মক, বৈশ্বিক মানসিকতা সিঙ্গাপুরের দক্ষ, মেধা-ভিত্তিক শাসনের সাথে মেলে','AI এবং প্রযুক্তিতে স্বাচ্ছন্দ্য বিশ্বের শীর্ষ স্মার্ট শহরের পরিচয়ের সাথে মেলে','সীমানাহীন বিশ্বদৃষ্টিভঙ্গি পূর্ব-পশ্চিম বুদ্ধিমত্তার চৌরাস্তার সাথে মেলে']},
+    },
+    global_creative_alpha:{
+      en:{city:'Global Digital',year:'2026',flag:'🌐',pinText:'Post-Border Creator Era',
+        vibe:'No city, no country — the metaverse, AI studios, and decentralized communities are your world. You exist in a space humanity is still designing, and that\'s exactly where you belong.',
+        reasons:['Your AI-native creative vision places you squarely in the frontier of 2026 digital civilization','Your borderless identity and remote-first mindset reflect the rise of the truly global creative class','Your blend of creativity and technology adoption makes you native to a world that hasn\'t fully arrived yet']},
+      bn:{city:'গ্লোবাল ডিজিটাল',year:'২০২৬',flag:'🌐',pinText:'পোস্ট-বর্ডার ক্রিয়েটর যুগ',
+        vibe:'কোনো শহর নেই, কোনো দেশ নেই — মেটাভার্স, AI স্টুডিও এবং বিকেন্দ্রীভূত সম্প্রদায়ই আপনার পৃথিবী।',
+        reasons:['AI-নেটিভ সৃজনশীল দৃষ্টিভঙ্গি ২০২৬ ডিজিটাল সভ্যতার অগ্রভাগে আপনাকে স্থাপন করে','সীমানাহীন পরিচয় এবং রিমোট-প্রথম মানসিকতা সত্যিকারের বৈশ্বিক সৃজনশীল শ্রেণীর উত্থানের সাথে মেলে','সৃজনশীলতা এবং প্রযুক্তির মিশ্রণ এমন বিশ্বে আপনাকে নেটিভ করে যা এখনও পুরোপুরি আসেনি']},
+    },
+    global_independent_z:{
+      en:{city:'Bali / Medellín',year:'2023',flag:'🌏',pinText:'Digital Nomad Prime Era',
+        vibe:'The remote work dream realized — laptop from a rice terrace, surfboard against the wall, Zoom calls at sunrise. Location-independent, purpose-driven, and free from anyone\'s permission.',
+        reasons:['Your fierce independence and self-reliance makes you the archetypal 2023 digital nomad','Your borderless lifestyle ambition mirrors the explosion of Bali and Medellín as nomad hubs','Your "build on your own terms" philosophy reflects the anti-corporate ethos of the nomad movement']},
+      bn:{city:'বালি / মেডেলিন',year:'২০২৩',flag:'🌏',pinText:'ডিজিটাল নোম্যাড প্রাইম যুগ',
+        vibe:'রিমোট ওয়ার্কের স্বপ্ন বাস্তবায়িত — ধানের ক্ষেত থেকে ল্যাপটপ, সূর্যোদয়ে Zoom কল।',
+        reasons:['তীব্র স্বাধীনতা আর্কিটাইপাল ২০২৩ ডিজিটাল নোম্যাডকে করে তোলে','সীমানাহীন জীবনধারার উচ্চাকাঙ্ক্ষা বালি এবং মেডেলিনের বিস্ফোরণের সাথে মেলে','"নিজের শর্তে গড়া" দর্শন নোম্যাড আন্দোলনের কর্পোরেট-বিরোধী নীতির প্রতিফলন']},
+    },
+    global_social_millennial:{
+      en:{city:'Dubai',year:'2022',flag:'🇦🇪',pinText:'Ambition Without Borders Era',
+        vibe:'Dubai 2022 became the world\'s meeting point — every ambitious person from every country in one city, building empires and networks across cultures. Ambition amplified by diversity.',
+        reasons:['Your networking superpower and global awareness mirrors Dubai\'s culture of intentional relationship-building across cultures','Your ambition and desire for impact reflects Dubai\'s ethos of achieving at the world level, not just locally','Your social bridge-building aligns with Dubai\'s role as the ultimate connector city between East and West']},
+      bn:{city:'দুবাই',year:'২০২২',flag:'🇦🇪',pinText:'সীমানা ছাড়া উচ্চাকাঙ্ক্ষা যুগ',
+        vibe:'দুবাই ২০২২ বিশ্বের মিলনস্থল হয়েছিল — প্রতিটি দেশের উচ্চাকাঙ্ক্ষী মানুষ এক শহরে।',
+        reasons:['নেটওয়ার্কিং সুপারপাওয়ার দুবাইয়ের সংস্কৃতি জুড়ে ইচ্ছাকৃত সম্পর্ক গড়ার সাথে মেলে','উচ্চাকাঙ্ক্ষা এবং প্রভাবের আকাঙ্ক্ষা দুবাইয়ের বৈশ্বিক পর্যায়ে অর্জনের নীতির প্রতিফলন','সামাজিক সেতু-নির্মাণ পূর্ব ও পশ্চিমের মধ্যে চূড়ান্ত সংযোগকারী শহরের সাথে মেলে']},
+    },
+    // ===== SOUTH ASIA / BANGLADESH =====
+    southasia_disciplined_millennial:{
+      en:{city:'Dhaka',year:'2023',flag:'🇧🇩',pinText:'Digital Bengal Rising Era',
+        vibe:'A generation of disciplined, self-taught digital builders transforming Dhaka from the inside out — freelancers, tech founders, and determined professionals rewriting the narrative of potential.',
+        reasons:['Your relentless discipline and self-improvement obsession mirrors the Dhaka digital generation\'s grit','Your structured goal-setting reflects the methodical work ethic of Bangladesh\'s emerging tech professionals','Your long-term vision aligns with the transformative ambition reshaping Dhaka\'s 2023 startup ecosystem']},
+      bn:{city:'ঢাকা',year:'২০২৩',flag:'🇧🇩',pinText:'ডিজিটাল বাংলা উদীয়মান যুগ',
+        vibe:'শৃঙ্খলাবদ্ধ, স্ব-শিক্ষিত ডিজিটাল নির্মাতাদের একটি প্রজন্ম ঢাকাকে ভেতর থেকে রূপান্তরিত করছে।',
+        reasons:['অক্লান্ত শৃঙ্খলা এবং আত্ম-উন্নয়নের আবেশ ঢাকার ডিজিটাল প্রজন্মের কঠোরতার সাথে মেলে','কাঠামোবদ্ধ লক্ষ্য নির্ধারণ বাংলাদেশের উদীয়মান প্রযুক্তি পেশাদারদের কাজের নীতির প্রতিফলন','দীর্ঘমেয়াদী দৃষ্টিভঙ্গি ঢাকার ২০২৩ স্টার্টআপ ইকোসিস্টেমের সাথে মেলে']},
+    },
+    southasia_creative_z:{
+      en:{city:'Dhaka',year:'2025',flag:'🇧🇩',pinText:'Bangladesh Creator Wave',
+        vibe:'Young, bold, and building a digital creative economy with phones as studios and the internet as the stage. The next generation of Bangladeshi creators is redefining what\'s possible from South Asia.',
+        reasons:['Your creative energy and digital-native comfort mirrors Bangladesh\'s exploding youth creator culture','Your social media fluency and content mindset aligns with Dhaka\'s growing influence on regional digital culture','Your "create and share" approach reflects the new Bangladeshi generation\'s rejection of traditional career paths']},
+      bn:{city:'ঢাকা',year:'২০২৫',flag:'🇧🇩',pinText:'বাংলাদেশ ক্রিয়েটর ওয়েভ',
+        vibe:'তরুণ, সাহসী এবং ফোনকে স্টুডিও হিসেবে ব্যবহার করে ডিজিটাল সৃজনশীল অর্থনীতি গড়ছে।',
+        reasons:['সৃজনশীল শক্তি বাংলাদেশের বিস্ফোরণকারী যুব ক্রিয়েটর সংস্কৃতির সাথে মেলে','সোশ্যাল মিডিয়া দক্ষতা ঢাকার আঞ্চলিক ডিজিটাল সংস্কৃতিতে ক্রমবর্ধমান প্রভাবের সাথে মেলে','"তৈরি এবং শেয়ার করা" পদ্ধতি নতুন বাংলাদেশী প্রজন্মের প্রতিফলন']},
+    },
+    southasia_social_z:{
+      en:{city:'Mumbai',year:'2022',flag:'🇮🇳',pinText:'Bollywood-to-Startup Era',
+        vibe:'India\'s maximum city evolving at warp speed — where traditional family values collide with disruptive ambition, and every street corner holds a founder, a content creator, or a dreamer.',
+        reasons:['Your people-first, socially-energized approach mirrors Mumbai\'s legendary culture of human connection at scale','Your blend of traditional values and modern ambition aligns with Mumbai 2022\'s dual identity','Your network-building instincts reflect Mumbai\'s "who you know transforms what you can do" reality']},
+      bn:{city:'মুম্বাই',year:'২০২২',flag:'🇮🇳',pinText:'বলিউড-থেকে-স্টার্টআপ যুগ',
+        vibe:'ভারতের সর্বোচ্চ শহর আলোর গতিতে বিকশিত — যেখানে ঐতিহ্যবাহী পারিবারিক মূল্যবোধ বিঘ্নকারী উচ্চাকাঙ্ক্ষার সাথে সংঘর্ষ হয়।',
+        reasons:['মানুষ-প্রথম, সামাজিকভাবে উদ্যমী পদ্ধতি মুম্বাইয়ের কিংবদন্তি সংযোগ সংস্কৃতির সাথে মেলে','ঐতিহ্যবাহী মূল্যবোধ এবং আধুনিক উচ্চাকাঙ্ক্ষার মিশ্রণ মুম্বাই ২০২২-র দ্বৈত পরিচয়ের সাথে মেলে','নেটওয়ার্ক গড়ার প্রবৃত্তি মুম্বাইয়ের বাস্তবতার প্রতিফলন']},
+    },
+    southasia_analytical_millennial:{
+      en:{city:'Bangalore',year:'2020',flag:'🇮🇳',pinText:'India Tech Prime Era',
+        vibe:'India\'s Silicon Valley at its defining moment — where analytical brilliance, global ambition, and engineering excellence created the world\'s largest tech talent hub virtually overnight.',
+        reasons:['Your analytical mindset and systematic thinking mirrors Bangalore\'s world-class engineering culture','Your global ambition and tech-forward orientation aligns with Bangalore 2020\'s moment of becoming a global tech power','Your structured problem-solving reflects the methodical approach that made Indian engineers sought after worldwide']},
+      bn:{city:'ব্যাঙ্গালোর',year:'২০২০',flag:'🇮🇳',pinText:'ভারত টেক প্রাইম যুগ',
+        vibe:'ভারতের সিলিকন ভ্যালি তার নির্ধারণকারী মুহূর্তে — বিশ্লেষণাত্মক প্রতিভা এবং বৈশ্বিক উচ্চাকাঙ্ক্ষা একত্রিত।',
+        reasons:['বিশ্লেষণাত্মক মানসিকতা ব্যাঙ্গালোরের বিশ্বমানের প্রকৌশল সংস্কৃতির সাথে মেলে','বৈশ্বিক উচ্চাকাঙ্ক্ষা ব্যাঙ্গালোর ২০২০-র বৈশ্বিক প্রযুক্তি শক্তি হওয়ার মুহূর্তের সাথে মেলে','কাঠামোবদ্ধ সমস্যা সমাধান ভারতীয় প্রকৌশলীদের বিশ্বব্যাপী সন্ধান করার পদ্ধতিগত পদ্ধতির প্রতিফলন']},
+    },
+    southasia_empathetic_millennial:{
+      en:{city:'Dhaka',year:'2020',flag:'🇧🇩',pinText:'Resilient Heart Era',
+        vibe:'Dhaka 2020 — a city of 20 million hearts navigating crisis with collective strength, where empathy, family bonds, and community care became the greatest resources anyone had.',
+        reasons:['Your deep empathy and people-centered values mirror Dhaka\'s profound culture of collective support','Your emotional intelligence reflects Bangladesh\'s tradition of community resilience in the face of adversity','Your desire to lift others and create meaningful impact aligns with Dhaka\'s spirit of solidarity']},
+      bn:{city:'ঢাকা',year:'২০২০',flag:'🇧🇩',pinText:'স্থিতিস্থাপক হৃদয় যুগ',
+        vibe:'ঢাকা ২০২০ — ২ কোটি হৃদয়ের শহর যৌথ শক্তিতে সংকট নেভিগেট করছে।',
+        reasons:['গভীর সহানুভূতি এবং মানুষ-কেন্দ্রিক মূল্যবোধ ঢাকার যৌথ সমর্থনের গভীর সংস্কৃতির সাথে মেলে','আবেগীয় বুদ্ধিমত্তা প্রতিকূলতার মুখে বাংলাদেশের সম্প্রদায় স্থিতিস্থাপকতার ঐতিহ্যের প্রতিফলন','অন্যদের তোলার আকাঙ্ক্ষা ঢাকার সংহতির চেতনার সাথে মেলে']},
+    },
+  };
+
+  // Build lookup key: country_pers_gen
+  const key1 = `${topCountry}_${topPers}_${topGen}`;
+  const key2 = `${topCountry}_${topPers}_${secondPers}`;
+  const key3 = `${topCountry}_${topPers}`;
+
+  // Fallback chain
+  let match = eraDB[key1] || eraDB[key2];
+  if(!match){
+    // Try any key starting with country_pers
+    const fallbackKey = Object.keys(eraDB).find(k=>k.startsWith(`${topCountry}_${topPers}`));
+    if(fallbackKey) match = eraDB[fallbackKey];
+  }
+  if(!match){
+    // Try any key starting with country
+    const fallbackKey2 = Object.keys(eraDB).find(k=>k.startsWith(`${topCountry}_`));
+    if(fallbackKey2) match = eraDB[fallbackKey2];
+  }
+  if(!match) match = eraDB['global_analytical_z']; // ultimate fallback
+
+  return match[lang] || match['en'];
+}
+
+function buildResults(){
+  const topGen = topKey(scores.gen);
+  const topCountry = topKey(scores.country);
+  const [topPers, secondPers] = topTwo(scores.pers);
+  const bottomPers = Object.keys(scores.pers).sort((a,b)=>scores.pers[a]-scores.pers[b]).slice(0,2);
+  const gp = genProfiles[topGen];
+  const cp = countryProfiles[topCountry];
+  const pp = persProfiles[topPers];
+
+  // SPECIFIC ERA MATCH
+  const eraMatch = getSpecificEraMatch(topGen, topCountry, topPers, secondPers, scores);
+  document.getElementById('era-pin-text').textContent = eraMatch.pinText;
+  document.getElementById('era-city').textContent = eraMatch.city;
+  document.getElementById('era-year').textContent = eraMatch.year;
+  document.getElementById('era-vibe').textContent = eraMatch.vibe;
+  document.getElementById('era-why-title').textContent = T[lang].rEraWhy;
+  document.getElementById('rl-era').textContent = T[lang].rEra;
+  const erR = document.getElementById('era-reasons');
+  erR.innerHTML = '';
+  eraMatch.reasons.forEach(r=>{
+    const div = document.createElement('div');
+    div.className = 'era-reason';
+    div.innerHTML = `<div class="era-reason-dot"></div><span>${r}</span>`;
+    erR.appendChild(div);
+  });
+
+  // Overall match percentage — simulate based on score distribution
+  const genTotal = Object.values(scores.gen).reduce((a,b)=>a+b,0)||1;
+  const genPct = Math.min(99,Math.round((scores.gen[topGen]/genTotal)*100*1.4+30));
+  const countryTotal = Object.values(scores.country).reduce((a,b)=>a+b,0)||1;
+  const countryPct = Math.min(99,Math.round((scores.country[topCountry]/countryTotal)*100*1.4+30));
+  
+  document.getElementById('r-gen-emoji').textContent = gp.emoji;
+  document.getElementById('r-gen-type').textContent = gp.label[lang];
+  document.getElementById('r-gen-desc').textContent = gp.desc[lang];
+  document.getElementById('r-country-emoji').textContent = cp.emoji;
+  document.getElementById('r-country').textContent = cp.label[lang];
+  document.getElementById('r-country-desc').textContent = cp.desc[lang];
+  document.getElementById('r-name').textContent = pp.label[lang]+' '+gp.emoji;
+  document.getElementById('r-personality').textContent = pp.emoji+' '+pp.label[lang];
+  document.getElementById('r-personality-desc').textContent = pp.desc[lang];
+  document.getElementById('r-tagline').textContent = T[lang].resTagline;
+  document.getElementById('r-badge-text').textContent = T[lang].resBadge;
+
+  // Strengths
+  const strengthKeys = Object.keys(scores.pers).sort((a,b)=>scores.pers[b]-scores.pers[a]).slice(0,4);
+  const strengthLabels = {
+    analytical:{en:'Analytical Thinking',bn:'বিশ্লেষণাত্মক চিন্তা'},
+    creative:{en:'Creative Vision',bn:'সৃজনশীল দৃষ্টিভঙ্গি'},
+    social:{en:'Social Intelligence',bn:'সামাজিক বুদ্ধিমত্তা'},
+    independent:{en:'Self-Reliance',bn:'আত্মনির্ভরতা'},
+    disciplined:{en:'Consistency',bn:'ধারাবাহিকতা'},
+    empathetic:{en:'Emotional Depth',bn:'আবেগীয় গভীরতা'},
+  };
+  const weaknessLabels = {
+    analytical:{en:'Over-Analysis',bn:'অতিরিক্ত বিশ্লেষণ'},
+    creative:{en:'Follow-Through',bn:'শেষ পর্যন্ত টিকে থাকা'},
+    social:{en:'Boundary Setting',bn:'সীমানা নির্ধারণ'},
+    independent:{en:'Collaboration',bn:'সহযোগিতা'},
+    disciplined:{en:'Flexibility',bn:'নমনীয়তা'},
+    empathetic:{en:'Self-Advocacy',bn:'আত্ম-পক্ষপাত'},
+  };
+  const sc = document.getElementById('r-strengths');
+  sc.innerHTML = '';
+  strengthKeys.forEach(k=>{
+    const tag = document.createElement('span');
+    tag.className='tag strength';
+    tag.textContent='✓ '+strengthLabels[k][lang];
+    sc.appendChild(tag);
+  });
+  const wc = document.getElementById('r-weaknesses');
+  wc.innerHTML = '';
+  bottomPers.forEach(k=>{
+    const tag = document.createElement('span');
+    tag.className='tag weakness';
+    tag.textContent='↑ '+weaknessLabels[k][lang];
+    wc.appendChild(tag);
+  });
+
+  // Tips
+  const tips = getTips(topPers, topGen, bottomPers[0], lang);
+  const tl = document.getElementById('r-tips');
+  tl.innerHTML = '';
+  tips.forEach((tip,i)=>{
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="tip-num">${i+1}</span><span>${tip}</span>`;
+    tl.appendChild(li);
+  });
+
+  // Future potential
+  const future = getFuture(topPers, topGen, topCountry, lang);
+  document.getElementById('r-future').textContent = future.title;
+  document.getElementById('r-future-sub').textContent = future.sub;
+
+  // Roadmap
+  const roadmap = getRoadmap(topPers, topGen, topCountry, bottomPers, lang);
+  const rm = document.getElementById('r-roadmap');
+  rm.innerHTML = '';
+  roadmap.forEach((phase,i)=>{
+    const div = document.createElement('div');
+    div.className = 'roadmap-phase phase'+(i+1);
+    div.innerHTML = `<div class="phase-label">${phase.label}</div><div class="phase-title">${phase.title}</div><ul class="phase-items">${phase.items.map(it=>`<li>${it}</li>`).join('')}</ul>`;
+    rm.appendChild(div);
+  });
+
+  // Motivational quote
+  const quotes = getQuote(topPers, lang);
+  document.getElementById('r-quote').textContent = quotes.quote;
+  document.getElementById('r-quote-sub').textContent = quotes.sub;
+}
+
+function getTips(pers, gen, weakness, lang){
+  const all = {
+    en:{
+      analytical:["Turn your analysis into action — set a 48-hour decision deadline and trust your data.","Share your insights publicly. Writing your analysis builds authority and clarity simultaneously.","Pair your logical thinking with one creative constraint each week to expand your problem-solving range."],
+      creative:["Create a 'completion ritual' — finish one project before starting the next. Your ideas deserve to exist in the world.","Document your creative process. Your unique way of seeing things is a product others would pay for.","Find an 'execution partner' — someone analytical who complements your visionary thinking."],
+      social:["Your network is your most undervalued asset. One meaningful reconnection per week compounds over years.","Practice strategic solitude — your best ideas come when you're not stimulated by others.","Build a personal board of advisors: 3 people who challenge you, 3 who support you."],
+      independent:["Collaboration multiplies your output. Find one partner who has skills you lack.","Share your journey publicly — your authentic story attracts your tribe.","Build systems and routines that allow independence without sacrificing structure."],
+      disciplined:["Your consistency is rare. Protect it by saying no more than you say yes.","Teach your systems to others — sharing what works reinforces your own habits and builds your reputation.","Add intentional flexibility: one 'rule-free' day per month to explore and recharge."],
+      empathetic:["Protect your energy — empathy is a superpower but requires boundaries to sustain.","Channel your emotional depth into storytelling or mentorship — it's your biggest leadership advantage.","Practice self-advocacy: schedule time for your own goals before filling everyone else's needs."],
+    },
+    bn:{
+      analytical:["বিশ্লেষণকে কর্মে রূপান্তরিত করুন — ৪৮ ঘণ্টার সিদ্ধান্তের সময়সীমা নির্ধারণ করুন।","আপনার অন্তর্দৃষ্টি প্রকাশ্যে শেয়ার করুন। লেখা কর্তৃত্ব এবং স্পষ্টতা একসাথে তৈরি করে।","প্রতি সপ্তাহে একটি সৃজনশীল সীমাবদ্ধতার সাথে যৌক্তিক চিন্তা যুক্ত করুন।"],
+      creative:["'সমাপ্তির আচার' তৈরি করুন — পরেরটি শুরু করার আগে একটি প্রকল্প শেষ করুন।","আপনার সৃজনশীল প্রক্রিয়া নথিভুক্ত করুন। আপনার অনন্য দৃষ্টিভঙ্গি একটি পণ্য।","একজন 'এক্সিকিউশন পার্টনার' খুঁজুন — বিশ্লেষণাত্মক কেউ যে আপনার দূরদর্শী চিন্তা পূরণ করে।"],
+      social:["আপনার নেটওয়ার্ক সবচেয়ে মূল্যবান সম্পদ। প্রতি সপ্তাহে একটি অর্থবহ পুনঃসংযোগ।","কৌশলগত নিঃসঙ্গতার অনুশীলন করুন — আপনার সেরা ধারণা একা আসে।","একটি ব্যক্তিগত উপদেষ্টা বোর্ড গড়ুন: ৩ জন যারা চ্যালেঞ্জ করেন, ৩ জন যারা সমর্থন করেন।"],
+      independent:["সহযোগিতা আপনার আউটপুট বহুগুণ করে। আপনার অনুপস্থিত দক্ষতার কেউ খুঁজুন।","আপনার যাত্রা প্রকাশ্যে শেয়ার করুন — আপনার খাঁটি গল্প উপজাতি আকর্ষণ করে।","স্বাধীনতার অনুমতি দেয় এমন সিস্টেম তৈরি করুন।"],
+      disciplined:["আপনার ধারাবাহিকতা বিরল। 'না' বলার মাধ্যমে এটি রক্ষা করুন।","আপনার সিস্টেম অন্যদের শেখান — অভ্যাস শক্তিশালী হয়।","ইচ্ছাকৃত নমনীয়তা যোগ করুন: প্রতি মাসে একটি 'নিয়ম-মুক্ত' দিন।"],
+      empathetic:["আপনার শক্তি রক্ষা করুন — সহানুভূতি একটি সুপারপাওয়ার কিন্তু সীমানা প্রয়োজন।","আবেগীয় গভীরতাকে গল্পবলা বা মেন্টরশিপে চ্যানেল করুন।","আত্ম-পক্ষপাত অনুশীলন করুন: অন্যদের আগে নিজের লক্ষ্যের জন্য সময় নির্ধারণ করুন।"],
+    }
+  };
+  return all[lang][pers] || all[lang].analytical;
+}
+
+function getFuture(pers, gen, country, lang){
+  const futures = {
+    en:{
+      analytical:{title:'🔮 High-Impact Systems Builder',sub:'Your analytical depth positions you for leadership roles in tech, strategy, finance, or policy where complex systems need decoding and optimization.'},
+      creative:{title:'🚀 Category-Creating Innovator',sub:'Your visionary thinking can birth entirely new industries, art forms, or movements. The future rewards those who see possibilities before they exist.'},
+      social:{title:'🌟 Influential Community Leader',sub:'Your ability to connect people will define your legacy. From startups to social movements, connectors shape the future.'},
+      independent:{title:'🧭 Trailblazing Entrepreneur',sub:'Your pioneering spirit and self-reliance make you ideal for building something from scratch that others will follow.'},
+      disciplined:{title:'⚡ High-Performance Authority',sub:'Your consistency will compound into mastery. People will seek your guidance and trust your judgment because you\'ve earned it through sustained excellence.'},
+      empathetic:{title:'❤️ Transformational Human Leader',sub:'The future of leadership is emotional intelligence. Your capacity to understand and inspire people will make you indispensable in any field.'},
+    },
+    bn:{
+      analytical:{title:'🔮 উচ্চ-প্রভাব সিস্টেম নির্মাতা',sub:'আপনার বিশ্লেষণাত্মক গভীরতা প্রযুক্তি, কৌশল, অর্থ বা নীতিতে নেতৃত্বের ভূমিকার জন্য প্রস্তুত।'},
+      creative:{title:'🚀 ক্যাটাগরি-তৈরিকারী উদ্ভাবক',sub:'আপনার দূরদর্শী চিন্তা সম্পূর্ণ নতুন শিল্প বা আন্দোলন জন্ম দিতে পারে।'},
+      social:{title:'🌟 প্রভাবশালী সম্প্রদায় নেতা',sub:'মানুষকে সংযুক্ত করার ক্ষমতা আপনার উত্তরাধিকার নির্ধারণ করবে।'},
+      independent:{title:'🧭 পথ-প্রশস্তকারী উদ্যোক্তা',sub:'আপনার অগ্রগামী মনোভাব স্ক্র্যাচ থেকে কিছু তৈরি করার জন্য আদর্শ।'},
+      disciplined:{title:'⚡ উচ্চ-পারফরম্যান্স কর্তৃপক্ষ',sub:'আপনার ধারাবাহিকতা দক্ষতায় পরিণত হবে। মানুষ আপনার নির্দেশনা চাইবে।'},
+      empathetic:{title:'❤️ রূপান্তরমূলক মানব নেতা',sub:'নেতৃত্বের ভবিষ্যৎ হলো আবেগীয় বুদ্ধিমত্তা। মানুষকে বোঝার ক্ষমতা আপনাকে অপরিহার্য করবে।'},
+    }
+  };
+  return futures[lang][pers] || futures[lang].analytical;
+}
+
+function getRoadmap(pers, gen, country, weaknesses, lang){
+  const roadmaps = {
+    en:{
+      analytical:[
+        {label:'Phase 1 — Foundation (0-3 months)',title:'Build Your Intelligence Infrastructure',items:['Read 2 books per month in your domain','Set up a personal knowledge management system (Obsidian/Notion)','Start a weekly "insight journal" — document patterns you observe','Choose one skill gap and dedicate 30 min/day to closing it']},
+        {label:'Phase 2 — Momentum (3-9 months)',title:'Turn Analysis into Authority',items:['Start sharing your analysis publicly (newsletter, LinkedIn, blog)','Build a portfolio of solved problems or case studies','Find a mentor 10 years ahead in your field','Take on one project that requires collaboration to balance your independence']},
+        {label:'Phase 3 — Scale (9-24 months)',title:'Become the Expert Others Seek',items:['Launch a course, consulting practice, or thought leadership platform','Build a community of peers who exchange insights','Apply your skills to a larger-scale problem or organization','Document your frameworks and systems — turn them into IP']},
+      ],
+      creative:[
+        {label:'Phase 1 — Foundation (0-3 months)',title:'Discipline Your Creative Energy',items:['Create a daily creative practice — even 20 minutes of making','Finish one project completely before starting another','Study the business side of your creative domain','Find 3 creators who combine creativity with disciplined execution']},
+        {label:'Phase 2 — Momentum (3-9 months)',title:'Build Your Creative Brand',items:['Publish consistently — quality builds trust, but volume builds discovery','Collaborate with an execution-focused partner','Turn your unique perspective into a signature style or voice','Validate ideas in public — use feedback as fuel not fear']},
+        {label:'Phase 3 — Scale (9-24 months)',title:'Monetize Your Unique Vision',items:['Create a premium offering around your creative expertise','License, teach, or sell your creative frameworks','Build recurring revenue from your creative work','Partner strategically with analytics or operations experts']},
+      ],
+      social:[
+        {label:'Phase 1 — Foundation (0-3 months)',title:'Systematize Your Relationships',items:['Create a personal CRM — track your key relationships intentionally','Practice strategic listening: ask more questions than you speak','Build one high-quality relationship per month','Develop your personal brand story — why people should know you']},
+        {label:'Phase 2 — Momentum (3-9 months)',title:'Become the Hub',items:['Host a recurring gathering (virtual or in-person) in your niche','Introduce 5 people to each other per month who should know each other','Build a following around a topic you genuinely care about','Develop deep expertise in one area so your network values your insights']},
+        {label:'Phase 3 — Scale (9-24 months)',title:'Lead Your Community',items:['Launch a community, mastermind, or network organization','Monetize your connector skills through events, partnerships, or advisory','Write about your relationship philosophy and build authority','Create legacy through the careers and lives you\'ve helped shape']},
+      ],
+      independent:[
+        {label:'Phase 1 — Foundation (0-3 months)',title:'Build Your Self-Reliant System',items:['Design a daily structure that maximizes your autonomy','Identify your 3 core income sources or income goals','Build a clear personal code — values, principles, non-negotiables','Study one successful person who built something from nothing']},
+        {label:'Phase 2 — Momentum (3-9 months)',title:'Validate Your Path',items:['Launch one revenue-generating project, even small','Build a public presence that documents your independent journey','Find one accountability partner who won\'t let you stagnate','Develop the one collaboration skill that will multiply your output most']},
+        {label:'Phase 3 — Scale (9-24 months)',title:'Build Your Empire on Your Terms',items:['Scale what\'s working — automate, delegate, or productize','Create a team around your vision while maintaining your core direction','Build assets (IP, audience, equity) that generate value without your time','Define what "winning" looks like on your terms and build toward it']},
+      ],
+      disciplined:[
+        {label:'Phase 1 — Foundation (0-3 months)',title:'Optimize Your Consistency Engine',items:['Audit your daily habits — remove friction from your highest priorities','Create a weekly review ritual every Sunday to track progress','Add one new keystone habit that supports your biggest goal','Study the science of habit formation (Atomic Habits, The Compound Effect)']},
+        {label:'Phase 2 — Momentum (3-9 months)',title:'Stack Your Advantages',items:['Build morning and evening routines that are non-negotiable','Track your most important metrics weekly — what gets measured gets managed','Say no to 3 things per week that don\'t align with your goals','Start teaching or coaching — teaching deepens mastery 3x faster']},
+        {label:'Phase 3 — Scale (9-24 months)',title:'Compound Into Excellence',items:['Document your systems and frameworks for others to follow','Take on increasing challenges to grow beyond your current ceiling','Build financial discipline to match your productivity discipline','Create a long-term vision 10 years out and reverse-engineer it']},
+      ],
+      empathetic:[
+        {label:'Phase 1 — Foundation (0-3 months)',title:'Ground Your Empathy in Purpose',items:['Define your personal mission — who do you exist to serve?','Build emotional intelligence practices: journaling, therapy, reflection','Establish firm boundaries that protect your energy long-term','Study the intersection of empathy and leadership (dare to lead, EQ applied)']},
+        {label:'Phase 2 — Momentum (3-9 months)',title:'Lead Through Your Heart',items:['Start mentoring 1-2 people regularly — your gift multiplies through others','Develop your communication style — speaking, writing, or storytelling','Build a reputation for being someone who "gets it" and creates safe spaces','Learn to self-advocate: negotiate for your value confidently']},
+        {label:'Phase 3 — Scale (9-24 months)',title:'Become a Transformational Leader',items:['Build or join an organization that aligns with your values at scale','Create content, programs, or experiences that help others feel understood','Build a personal brand as a thoughtful, people-first leader','Define your legacy: what transformation do you want to enable in others?']},
+      ],
+    },
+    bn:{
+      analytical:[
+        {label:'পর্যায় ১ — ভিত্তি (০-৩ মাস)',title:'আপনার বুদ্ধিমত্তার অবকাঠামো তৈরি করুন',items:['প্রতি মাসে আপনার ডোমেনে ২টি বই পড়ুন','ব্যক্তিগত জ্ঞান ব্যবস্থাপনা সিস্টেম সেটআপ করুন','সাপ্তাহিক "অন্তর্দৃষ্টি জার্নাল" শুরু করুন','একটি দক্ষতার ঘাটতি বেছে নিন এবং দিনে ৩০ মিনিট পূরণে উৎসর্গ করুন']},
+        {label:'পর্যায় ২ — গতি (৩-৯ মাস)',title:'বিশ্লেষণকে কর্তৃত্বে রূপান্তর করুন',items:['বিশ্লেষণ প্রকাশ্যে শেয়ার করুন (নিউজলেটার, লিঙ্কডইন, ব্লগ)','সমাধান করা সমস্যার একটি পোর্টফোলিও তৈরি করুন','আপনার ক্ষেত্রে ১০ বছর এগিয়ে কাউকে মেন্টর হিসেবে খুঁজুন','একটি প্রকল্প নিন যাতে সহযোগিতা প্রয়োজন']},
+        {label:'পর্যায় ৩ — স্কেল (৯-২৪ মাস)',title:'বিশেষজ্ঞ হন যাকে অন্যরা খোঁজে',items:['একটি কোর্স, পরামর্শ অনুশীলন বা থট লিডারশিপ প্ল্যাটফর্ম চালু করুন','সমকক্ষদের একটি সম্প্রদায় তৈরি করুন যারা অন্তর্দৃষ্টি বিনিময় করেন','বৃহত্তর স্কেলের সমস্যায় দক্ষতা প্রয়োগ করুন','আপনার ফ্রেমওয়ার্ক নথিভুক্ত করুন — IP তে রূপান্তর করুন']},
+      ],
+      creative:[
+        {label:'পর্যায় ১ — ভিত্তি (০-৩ মাস)',title:'আপনার সৃজনশীল শক্তিকে শৃঙ্খলাবদ্ধ করুন',items:['দৈনিক সৃজনশীল অনুশীলন তৈরি করুন — ২০ মিনিটও চলবে','পরেরটি শুরু করার আগে একটি প্রকল্প সম্পূর্ণ করুন','আপনার সৃজনশীল ডোমেনের ব্যবসায়িক দিক অধ্যয়ন করুন','৩ জন ক্রিয়েটর খুঁজুন যারা সৃজনশীলতা ও শৃঙ্খলা একত্রিত করেন']},
+        {label:'পর্যায় ২ — গতি (৩-৯ মাস)',title:'আপনার সৃজনশীল ব্র্যান্ড তৈরি করুন',items:['ধারাবাহিকভাবে প্রকাশ করুন — গুণমান বিশ্বাস তৈরি করে','একজন এক্সিকিউশন-কেন্দ্রিক অংশীদারের সাথে সহযোগিতা করুন','আপনার অনন্য দৃষ্টিভঙ্গিকে স্বাক্ষরী শৈলীতে রূপান্তর করুন','জনসমক্ষে আইডিয়া যাচাই করুন — মতামত জ্বালানি']},
+        {label:'পর্যায় ৩ — স্কেল (৯-২৪ মাস)',title:'আপনার অনন্য দৃষ্টিভঙ্গি মনিটাইজ করুন',items:['আপনার সৃজনশীল দক্ষতার চারপাশে প্রিমিয়াম অফারিং তৈরি করুন','আপনার সৃজনশীল ফ্রেমওয়ার্ক লাইসেন্স, শেখান বা বিক্রি করুন','সৃজনশীল কাজ থেকে পুনরাবৃত্ত আয় তৈরি করুন','বিশ্লেষণ বিশেষজ্ঞদের সাথে কৌশলগত অংশীদারিত্ব করুন']},
+      ],
+      social:[
+        {label:'পর্যায় ১ — ভিত্তি (০-৩ মাস)',title:'আপনার সম্পর্ক পদ্ধতিগত করুন',items:['ব্যক্তিগত CRM তৈরি করুন — মূল সম্পর্ক ট্র্যাক করুন','কৌশলগত শ্রবণ অনুশীলন করুন: বেশি প্রশ্ন করুন','প্রতি মাসে একটি উচ্চ-মানের সম্পর্ক তৈরি করুন','আপনার ব্যক্তিগত ব্র্যান্ড গল্প তৈরি করুন']},
+        {label:'পর্যায় ২ — গতি (৩-৯ মাস)',title:'হাব হয়ে উঠুন',items:['আপনার নিশে একটি পুনরাবৃত্ত সভা হোস্ট করুন','প্রতি মাসে ৫ জনকে একে অপরের সাথে পরিচয় করিয়ে দিন','একটি বিষয় নিয়ে অনুসরণকারী গড়ুন','একটি ক্ষেত্রে গভীর দক্ষতা বিকাশ করুন']},
+        {label:'পর্যায় ৩ — স্কেল (৯-২৪ মাস)',title:'আপনার সম্প্রদায় নেতৃত্ব দিন',items:['একটি সম্প্রদায়, মাস্টারমাইন্ড বা নেটওয়ার্ক সংগঠন চালু করুন','ইভেন্ট, অংশীদারিত্বের মাধ্যমে সংযোগকারী দক্ষতা মনিটাইজ করুন','সম্পর্ক দর্শন সম্পর্কে লিখুন এবং কর্তৃত্ব তৈরি করুন','উত্তরাধিকার তৈরি করুন যার জীবন আপনি সহায়তা করেছেন']},
+      ],
+      independent:[
+        {label:'পর্যায় ১ — ভিত্তি (০-৩ মাস)',title:'আপনার স্বনির্ভর সিস্টেম তৈরি করুন',items:['আপনার স্বায়ত্তশাসন সর্বাধিক করে এমন দৈনিক কাঠামো ডিজাইন করুন','আপনার ৩টি মূল আয়ের উৎস চিহ্নিত করুন','একটি স্পষ্ট ব্যক্তিগত কোড তৈরি করুন','শূন্য থেকে কিছু গড়েছেন এমন একজন সফল ব্যক্তি অধ্যয়ন করুন']},
+        {label:'পর্যায় ২ — গতি (৩-৯ মাস)',title:'আপনার পথ যাচাই করুন',items:['একটি রাজস্ব-উৎপাদনকারী প্রকল্প চালু করুন','একটি পাবলিক উপস্থিতি তৈরি করুন যা স্বাধীন যাত্রা নথিভুক্ত করে','একজন জবাবদিহিতা অংশীদার খুঁজুন','সবচেয়ে বেশি আউটপুট বাড়াবে এমন সহযোগিতার দক্ষতা বিকাশ করুন']},
+        {label:'পর্যায় ৩ — স্কেল (৯-২৪ মাস)',title:'আপনার শর্তে সাম্রাজ্য গড়ুন',items:['যা কাজ করছে তা স্কেল করুন — স্বয়ংক্রিয়, প্রতিনিধিত্ব বা পণ্যায়ন করুন','আপনার মূল দিকনির্দেশনা বজায় রেখে দলের চারপাশে তৈরি করুন','সম্পদ তৈরি করুন যা আপনার সময় ছাড়াই মূল্য উৎপন্ন করে','আপনার শর্তে "জেতা" কেমন দেখায় তা সংজ্ঞায়িত করুন']},
+      ],
+      disciplined:[
+        {label:'পর্যায় ১ — ভিত্তি (০-৩ মাস)',title:'আপনার ধারাবাহিকতার ইঞ্জিন অপ্টিমাইজ করুন',items:['দৈনিক অভ্যাস নিরীক্ষণ করুন — সর্বোচ্চ অগ্রাধিকার থেকে ঘর্ষণ দূর করুন','প্রতি রবিবার সাপ্তাহিক পর্যালোচনা আচার তৈরি করুন','একটি নতুন কীস্টোন অভ্যাস যোগ করুন','অভ্যাস গঠনের বিজ্ঞান অধ্যয়ন করুন']},
+        {label:'পর্যায় ২ — গতি (৩-৯ মাস)',title:'আপনার সুবিধা স্তুপ করুন',items:['অ-আলোচনাযোগ্য সকাল এবং সন্ধ্যার রুটিন তৈরি করুন','সাপ্তাহিক সবচেয়ে গুরুত্বপূর্ণ মেট্রিক্স ট্র্যাক করুন','প্রতি সপ্তাহে ৩টি জিনিসকে না বলুন','শেখানো বা কোচিং শুরু করুন — দক্ষতা ৩x দ্রুত বিকাশ করে']},
+        {label:'পর্যায় ৩ — স্কেল (৯-২৪ মাস)',title:'শ্রেষ্ঠত্বে যৌগিক হন',items:['অন্যদের অনুসরণ করার জন্য সিস্টেম নথিভুক্ত করুন','বর্তমান সীমার বাইরে বাড়তে ক্রমবর্ধমান চ্যালেঞ্জ নিন','দীর্ঘমেয়াদী দৃষ্টিভঙ্গি তৈরি করুন এবং বিপরীত-ইঞ্জিনিয়ার করুন','আর্থিক শৃঙ্খলা এবং উৎপাদনশীলতা শৃঙ্খলা একত্রিত করুন']},
+      ],
+      empathetic:[
+        {label:'পর্যায় ১ — ভিত্তি (০-৩ মাস)',title:'আপনার সহানুভূতি উদ্দেশ্যে ভিত্তি করুন',items:['আপনার ব্যক্তিগত মিশন সংজ্ঞায়িত করুন — আপনি কার সেবার জন্য আছেন?','আবেগীয় বুদ্ধিমত্তার অনুশীলন তৈরি করুন: জার্নালিং, থেরাপি','শক্তি রক্ষার জন্য দৃঢ় সীমানা স্থাপন করুন','সহানুভূতি ও নেতৃত্বের সংযোগস্থল অধ্যয়ন করুন']},
+        {label:'পর্যায় ২ — গতি (৩-৯ মাস)',title:'হৃদয় দিয়ে নেতৃত্ব দিন',items:['নিয়মিতভাবে ১-২ জনকে মেন্টর করা শুরু করুন','আপনার যোগাযোগ শৈলী বিকাশ করুন','এমন কেউ হওয়ার সুনাম গড়ুন যে "বোঝে"','আত্ম-পক্ষপাত শিখুন: আত্মবিশ্বাসের সাথে আপনার মূল্য নিয়ে আলোচনা করুন']},
+        {label:'পর্যায় ৩ — স্কেল (৯-২৪ মাস)',title:'রূপান্তরমূলক নেতা হন',items:['এমন একটি সংগঠন তৈরি বা যোগ দিন যা আপনার মানের সাথে সামঞ্জস্যপূর্ণ','অন্যদের বোঝার সুযোগ দেয় এমন কনটেন্ট তৈরি করুন','মানুষ-প্রথম নেতা হিসেবে ব্যক্তিগত ব্র্যান্ড তৈরি করুন','আপনার উত্তরাধিকার সংজ্ঞায়িত করুন: অন্যদের মধ্যে কী রূপান্তর সক্ষম করতে চান?']},
+      ],
+    }
+  };
+  return (roadmaps[lang][pers] || roadmaps[lang].analytical);
+}
+
+function getQuote(pers, lang){
+  const quotes = {
+    en:{
+      analytical:{quote:'"The quality of our decisions determines the quality of our lives."',sub:'— Your analytical mind is your greatest competitive edge'},
+      creative:{quote:'"Creativity is intelligence having fun — now make it consistent."',sub:'— The world needs your ideas executed, not just imagined'},
+      social:{quote:'"Your network is your net worth — invest in it like an asset."',sub:'— The relationships you build will determine your ceiling'},
+      independent:{quote:'"The pioneer always walks alone — until others catch up."',sub:'— Your path was never meant to be well-traveled'},
+      disciplined:{quote:'"Discipline is choosing between what you want now and what you want most."',sub:'— Consistency is the most underrated superpower of our generation'},
+      empathetic:{quote:'"The most powerful thing you can do is make someone feel truly seen."',sub:'— Lead with empathy and watch what becomes possible'},
+    },
+    bn:{
+      analytical:{quote:'"আমাদের সিদ্ধান্তের গুণমান আমাদের জীবনের গুণমান নির্ধারণ করে।"',sub:'— আপনার বিশ্লেষণাত্মক মন আপনার সবচেয়ে বড় প্রতিযোগিতামূলক সুবিধা'},
+      creative:{quote:'"সৃজনশীলতা হলো বুদ্ধিমত্তার আনন্দ — এখন এটি ধারাবাহিক করুন।"',sub:'— বিশ্বের আপনার ধারণা বাস্তবায়িত হওয়া দরকার, শুধু কল্পনা নয়'},
+      social:{quote:'"আপনার নেটওয়ার্ক আপনার নেট ওয়ার্থ — সম্পদের মতো বিনিয়োগ করুন।"',sub:'— আপনি যে সম্পর্ক গড়েন তা আপনার সীমা নির্ধারণ করবে'},
+      independent:{quote:'"অগ্রগামী সবসময় একা হাঁটে — অন্যরা ধরা না দেওয়া পর্যন্ত।"',sub:'— আপনার পথ কখনই বহুল-পরিভ্রমিত হওয়ার কথা ছিল না'},
+      disciplined:{quote:'"শৃঙ্খলা হলো এখন যা চান এবং সবচেয়ে বেশি চান তার মধ্যে বেছে নেওয়া।"',sub:'— ধারাবাহিকতা আমাদের প্রজন্মের সবচেয়ে অবমূল্যায়িত সুপারপাওয়ার'},
+      empathetic:{quote:'"আপনি যা করতে পারেন তার মধ্যে সবচেয়ে শক্তিশালী হলো কাউকে সত্যিকারের দেখা অনুভব করানো।"',sub:'— সহানুভূতি দিয়ে নেতৃত্ব দিন এবং কী সম্ভব হয় তা দেখুন'},
+    }
+  };
+  return quotes[lang][pers] || quotes[lang].analytical;
+}
+
+function restartQuiz(){
+  answers = new Array(questions.length).fill(null).map(()=>[]);
+  currentQ = 0;
+  scores = {};
+  showScreen('hero');
+}
+
+function shareResult(){
+  const gp = genProfiles[topKey(scores.gen)];
+  const pp = persProfiles[topKey(scores.pers)];
+  const text = lang==='en'
+    ? `I just took the Generation & Lifestyle Analyzer! My result: ${pp.label.en} with a ${gp.label.en} mindset. Try it yourself!`
+    : `আমি Generation & Lifestyle Analyzer দিয়েছি! আমার ফলাফল: ${pp.label.bn} মানসিকতা। নিজে চেষ্টা করুন!`;
+  if(navigator.share){navigator.share({text,title:'Generation & Lifestyle Analyzer'});}
+  else{copyToClipboard(text);}
+}
+function copyResult(){
+  const gp = genProfiles[topKey(scores.gen)];
+  const cp = countryProfiles[topKey(scores.country)];
+  const pp = persProfiles[topKey(scores.pers)];
+  const text = lang==='en'
+    ? `🧬 My Generation & Lifestyle Analysis\n\nGeneration Mindset: ${gp.label.en}\nLifestyle Match: ${cp.label.en}\nPersonality: ${pp.label.en}\n\nTake the quiz yourself!`
+    : `🧬 আমার প্রজন্ম ও জীবনধারা বিশ্লেষণ\n\nপ্রজন্মের মানসিকতা: ${gp.label.bn}\nজীবনধারার মিল: ${cp.label.bn}\nব্যক্তিত্ব: ${pp.label.bn}`;
+  copyToClipboard(text);
+}
+function copyToClipboard(text){
+  navigator.clipboard.writeText(text).then(()=>showToast(T[lang].copied)).catch(()=>{});
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
