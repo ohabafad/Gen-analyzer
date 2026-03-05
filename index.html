@@ -1,435 +1,932 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generation & Lifestyle Analyzer | Created by Ohab Johory Afad </title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #07091a;
-            --bg2: #0d1130;
-            --bg3: #141a3c;
-            --card: rgba(20,26,60,0.85);
-            --card-border: rgba(0,229,204,0.15);
-            --text: #e8eaf6;
-            --text2: #8fa0c8;
-            --accent: #00e5cc;
-            --accent2: #ffb347;
-            --accent3: #a78bfa;
-            --glow: rgba(0,229,204,0.25);
-            --danger: #ff6b6b;
-            --success: #51cf66;
-            --font-head: 'Syne', sans-serif;
-            --font-body: 'DM Sans', 'Noto Sans Bengali', sans-serif;
-            --radius: 20px;
-            --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        [data-theme="light"] {
-            --bg: #f0f4ff;
-            --bg2: #e4eaff;
-            --bg3: #dce4ff;
-            --card: rgba(255,255,255,0.9);
-            --card-border: rgba(0,160,140,0.2);
-            --text: #1a2040;
-            --text2: #4a5580;
-            --glow: rgba(0,200,180,0.15);
-            --accent: #00a88c;
-            --accent2: #e08a00;
-            --accent3: #7c3aed;
-        }
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        html{scroll-behavior:smooth}
-        body{
-            font-family:var(--font-body);
-            background:var(--bg);
-            color:var(--text);
-            min-height:100vh;
-            overflow-x:hidden;
-            transition:background var(--transition),color var(--transition);
-        }
-        /* ANIMATED BACKGROUND */
-        .bg-canvas{
-            position:fixed;top:0;left:0;width:100%;height:100%;
-            z-index:0;pointer-events:none;overflow:hidden;
-        }
-        .orb{
-            position:absolute;border-radius:50%;filter:blur(80px);opacity:0.35;
-            animation:drift 15s ease-in-out infinite alternate;
-        }
-        .orb1{width:500px;height:500px;background:radial-gradient(circle,#00e5cc30,transparent);top:-100px;left:-100px;animation-delay:0s}
-        .orb2{width:400px;height:400px;background:radial-gradient(circle,#a78bfa30,transparent);bottom:-50px;right:-50px;animation-delay:-7s}
-        .orb3{width:300px;height:300px;background:radial-gradient(circle,#ffb34720,transparent);top:40%;left:40%;animation-delay:-3s}
-        @keyframes drift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(40px,30px) scale(1.1)}}
-        [data-theme="light"] .orb{opacity:0.2}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GenAnalyzer | Ohab Johory Afad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #060810;
+  --bg2:    #0b0f1e;
+  --bg3:    #111828;
+  --glass:  rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.07);
+  --text:   #f0f2ff;
+  --muted:  #5a6380;
+  --dim:    #8b93b0;
+  --cyan:   #00f0d4;
+  --violet: #8b5cf6;
+  --amber:  #f59e0b;
+  --red:    #f43f5e;
+  --green:  #10b981;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'Outfit', 'Noto Sans Bengali', sans-serif;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+[data-theme="light"] {
+  --bg:    #f5f7ff;
+  --bg2:   #edf0ff;
+  --bg3:   #e3e8ff;
+  --glass: rgba(0,0,0,0.03);
+  --border:rgba(0,0,0,0.08);
+  --text:  #0d1030;
+  --muted: #8892b0;
+  --dim:   #4a5270;
+  --cyan:  #0094a3;
+  --violet:#6d28d9;
+  --amber: #b45309;
+}
 
-        body::before{
-            content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-            background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-            opacity:0.5;
-        }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 
-        .app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
-        .topbar{
-            display:flex;align-items:center;justify-content:space-between;
-            padding:16px 24px;position:sticky;top:0;z-index:100;
-            background:var(--bg);border-bottom:1px solid var(--card-border);
-            backdrop-filter:blur(12px);
-            transition:background var(--transition);
-        }
-        .logo-container{display:flex;flex-direction:column}
-        .logo{
-            font-family:var(--font-head);font-weight:800;font-size:1.1rem;
-            background:linear-gradient(135deg,var(--accent),var(--accent3));
-            -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-            background-clip:text;
-        }
-        .logo-credit{font-size:0.65rem;color:var(--text2);margin-top:-2px}
-        .controls{display:flex;gap:10px;align-items:center}
-        .btn-icon{
-            background:var(--card);border:1px solid var(--card-border);
-            color:var(--text2);border-radius:12px;padding:8px 14px;
-            cursor:pointer;font-size:0.85rem;font-family:var(--font-body);
-            transition:all var(--transition);font-weight:500;
-        }
-        .btn-icon:hover{color:var(--accent);border-color:var(--accent);background:var(--glow)}
-        .main{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px 16px 40px}
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.4s var(--ease), color 0.4s var(--ease);
+  cursor: none;
+}
 
-        /* SCREENS */
-        .screen{width:100%;max-width:760px;animation:fadeIn 0.5s ease both}
-        .screen.hidden{display:none}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+/* ── CUSTOM CURSOR ─────────────────── */
+#cursor {
+  width: 12px; height: 12px;
+  background: var(--cyan);
+  border-radius: 50%;
+  position: fixed; pointer-events: none; z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+  mix-blend-mode: screen;
+}
+#cursor-ring {
+  width: 36px; height: 36px;
+  border: 1px solid rgba(0,240,212,0.4);
+  border-radius: 50%;
+  position: fixed; pointer-events: none; z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: transform 0.12s var(--ease);
+}
+body.hovering #cursor { width: 20px; height: 20px; background: var(--violet); }
 
-        /* HERO */
-        .hero{text-align:center;padding:60px 20px 40px}
-        .hero-badge{
-            display:inline-block;padding:6px 18px;border-radius:999px;
-            border:1px solid var(--accent);color:var(--accent);
-            font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
-            margin-bottom:12px;background:var(--glow);
-        }
-        .creator-badge{
-            font-family: var(--font-head);
-            font-size: 0.7rem;
-            color: var(--accent2);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 24px;
-            display: block;
-        }
-        .hero h1{
-            font-family:var(--font-head);font-size:clamp(2rem,5vw,3.5rem);font-weight:800;
-            line-height:1.1;margin-bottom:20px;
-            background:linear-gradient(135deg,var(--text) 0%,var(--accent) 60%,var(--accent3) 100%);
-            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-        }
-        .hero p{color:var(--text2);font-size:1.05rem;line-height:1.7;max-width:520px;margin:0 auto 36px}
-        .btn-start{
-            background:linear-gradient(135deg,var(--accent),var(--accent3));
-            color:#07091a;border:none;border-radius:16px;padding:16px 48px;
-            font-family:var(--font-head);font-size:1.05rem;font-weight:700;
-            cursor:pointer;transition:all var(--transition);
-            box-shadow:0 0 40px var(--glow);
-        }
-        .btn-start:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 0 60px var(--glow)}
+/* ── BACKGROUND ────────────────────── */
+.bg-layer {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.grid-bg {
+  position: absolute; inset: 0;
+  background-image: 
+    linear-gradient(rgba(0,240,212,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,212,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+}
+[data-theme="light"] .grid-bg {
+  background-image:
+    linear-gradient(rgba(0,150,180,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,150,180,0.07) 1px, transparent 1px);
+}
+.aurora {
+  position: absolute;
+  border-radius: 50%; filter: blur(100px); pointer-events: none;
+}
+.aurora-1 { width:700px;height:700px;background:radial-gradient(circle,rgba(0,240,212,0.06),transparent 70%);top:-200px;left:-150px;animation:float1 20s ease-in-out infinite alternate; }
+.aurora-2 { width:600px;height:600px;background:radial-gradient(circle,rgba(139,92,246,0.07),transparent 70%);bottom:-100px;right:-100px;animation:float2 25s ease-in-out infinite alternate; }
+.aurora-3 { width:400px;height:400px;background:radial-gradient(circle,rgba(245,158,11,0.04),transparent 70%);top:40%;left:50%;animation:float3 18s ease-in-out infinite alternate; }
+@keyframes float1{to{transform:translate(60px,40px)}}
+@keyframes float2{to{transform:translate(-40px,-60px)}}
+@keyframes float3{to{transform:translate(30px,-30px)}}
 
-        /* QUIZ UI */
-        .quiz-header{margin-bottom:24px}
-        .progress-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-        .progress-bar{height:6px;background:var(--bg3);border-radius:999px;overflow:hidden;position:relative}
-        .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));transition:width 0.4s ease}
-        .category-tag{display:inline-block;padding:4px 12px;border-radius:999px;font-size:0.72rem;font-weight:600;text-transform:uppercase;margin-top:8px;background:var(--bg3)}
-        .q-card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:32px;backdrop-filter:blur(12px)}
-        .q-text{font-family:var(--font-head);font-size:1.25rem;font-weight:700;margin-bottom:28px}
-        .opt{
-            background:var(--bg2);border:1.5px solid var(--card-border);border-radius:14px;
-            padding:16px 20px;cursor:pointer;transition:all var(--transition);
-            display:flex;align-items:center;gap:14px;margin-bottom:12px;
-        }
-        .opt:hover{border-color:var(--accent);background:var(--glow)}
-        .opt.selected{border-color:var(--accent);background:rgba(0,229,204,0.1);box-shadow:0 0 15px var(--glow)}
-        
-        /* RESULTS */
-        .results-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-        .r-card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:24px;position:relative;overflow:hidden}
-        .r-card.full{grid-column:1/-1}
-        .r-emoji{font-size:2.5rem;display:block;margin-bottom:10px}
-        .r-main{font-family:var(--font-head);font-size:1.4rem;font-weight:800;color:var(--accent)}
-        .r-sub{font-size:0.85rem;color:var(--text2);margin-top:5px}
-        .tag{padding:4px 12px;border-radius:999px;font-size:0.72rem;font-weight:600;margin-right:8px;display:inline-block;margin-top:10px}
-        .tag-strength{background:rgba(81,207,102,0.1);color:var(--success)}
-        .tag-weakness{background:rgba(255,107,107,0.1);color:var(--danger)}
-        
-        .roadmap-phase{background:var(--bg2);padding:15px;border-radius:12px;margin-top:10px;border-left:4px solid var(--accent)}
-        .roadmap-phase h4{font-size:0.85rem;margin-bottom:5px;color:var(--accent3)}
+/* Scanline */
+body::after {
+  content:''; position:fixed; inset:0; z-index:1; pointer-events:none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+}
 
-        @media(max-width:600px){.results-grid{grid-template-columns:1fr}}
-        .hidden{display:none}
-        .loading-screen{text-align:center;padding:100px 0}
-        .dna-loader{width:60px;height:60px;border:3px solid var(--accent);border-radius:50%;border-top-color:transparent;animation:spin 1s linear infinite;margin:0 auto 20px}
-        @keyframes spin{to{transform:rotate(360deg)}}
-    </style>
+/* ── APP SHELL ─────────────────────── */
+.app { position:relative; z-index:2; min-height:100vh; display:flex; flex-direction:column; }
+
+/* ── TOPBAR ────────────────────────── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px;
+  position: sticky; top: 0; z-index: 100;
+  border-bottom: 1px solid var(--border);
+  background: rgba(6,8,16,0.7);
+  backdrop-filter: blur(20px);
+  transition: background 0.4s;
+}
+[data-theme="light"] .topbar { background: rgba(245,247,255,0.8); }
+
+.logo-wrap { display: flex; flex-direction: column; gap: 1px; }
+.logo {
+  font-family: var(--font-display);
+  font-size: 1.6rem; letter-spacing: 0.12em;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1;
+}
+.logo-sub { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+
+.top-controls { display: flex; gap: 8px; }
+.ctl-btn {
+  background: var(--glass); border: 1px solid var(--border);
+  color: var(--dim); border-radius: 10px; padding: 8px 16px;
+  cursor: pointer; font-size: 0.78rem; font-family: var(--font-body);
+  letter-spacing: 0.05em; font-weight: 500;
+  transition: all 0.2s var(--ease);
+}
+.ctl-btn:hover { color: var(--cyan); border-color: var(--cyan); background: rgba(0,240,212,0.06); }
+
+/* ── MAIN ──────────────────────────── */
+.main { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px 60px; }
+
+.screen { width: 100%; max-width: 680px; }
+.screen.hidden { display: none; }
+
+/* ── HERO ──────────────────────────── */
+#screen-hero { text-align: center; padding: 80px 20px 60px; }
+
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 16px; border-radius: 999px;
+  border: 1px solid rgba(0,240,212,0.3);
+  background: rgba(0,240,212,0.06);
+  font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--cyan); margin-bottom: 16px;
+}
+.hero-eyebrow::before { content: ''; width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 10vw, 7rem);
+  line-height: 0.92;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.title-line1 { display: block; color: var(--text); }
+.title-line2 {
+  display: block;
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--violet) 60%, var(--amber) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.hero-by {
+  font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); margin: 18px 0 10px;
+}
+.hero-by span { color: var(--amber); }
+
+.hero-desc {
+  color: var(--dim); font-size: 1rem; line-height: 1.75;
+  max-width: 440px; margin: 0 auto 44px;
+  font-weight: 300;
+}
+
+.btn-cta {
+  display: inline-flex; align-items: center; gap: 12px;
+  background: linear-gradient(135deg, var(--cyan), var(--violet));
+  color: #06080f; border: none; border-radius: 14px;
+  padding: 18px 52px; font-family: var(--font-display);
+  font-size: 1.2rem; letter-spacing: 0.12em;
+  cursor: pointer; transition: all 0.3s var(--ease);
+  box-shadow: 0 0 60px rgba(0,240,212,0.2), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.btn-cta:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 0 100px rgba(0,240,212,0.35), inset 0 1px 0 rgba(255,255,255,0.2); }
+.btn-cta .arrow { display: inline-block; transition: transform 0.2s; }
+.btn-cta:hover .arrow { transform: translateX(5px); }
+
+.hero-stats {
+  display: flex; justify-content: center; gap: 40px; margin-top: 48px;
+  border-top: 1px solid var(--border); padding-top: 32px;
+}
+.stat { text-align: center; }
+.stat-num { font-family: var(--font-display); font-size: 2rem; letter-spacing: 0.08em; color: var(--text); }
+.stat-label { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+
+/* ── QUIZ ──────────────────────────── */
+#screen-quiz { animation: slideUp 0.5s var(--ease) both; }
+@keyframes slideUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+
+.quiz-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.quiz-counter {
+  font-family: var(--font-display);
+  font-size: 2.5rem; letter-spacing: 0.1em;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  line-height: 1;
+}
+.quiz-pct { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+
+.quiz-cat {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 999px;
+  background: var(--bg3); border: 1px solid var(--border);
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--violet);
+}
+
+.prog-track {
+  height: 3px; background: var(--bg3); border-radius: 999px; margin-bottom: 28px; overflow: hidden;
+}
+.prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  border-radius: 999px;
+  transition: width 0.5s var(--ease);
+  position: relative;
+}
+.prog-fill::after {
+  content: '';
+  position: absolute; right: 0; top: -2px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--violet);
+  box-shadow: 0 0 8px var(--violet);
+}
+
+.q-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 36px;
+  backdrop-filter: blur(16px);
+  position: relative; overflow: hidden;
+}
+.q-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.5;
+}
+
+.q-num {
+  font-family: var(--font-display);
+  font-size: 0.8rem; letter-spacing: 0.25em;
+  color: var(--muted); margin-bottom: 10px; display: block;
+}
+.q-text {
+  font-size: 1.2rem; font-weight: 600; line-height: 1.55;
+  margin-bottom: 28px; color: var(--text);
+}
+
+.opt {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--bg2); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 15px 18px;
+  cursor: pointer; margin-bottom: 10px;
+  transition: all 0.25s var(--ease); position: relative; overflow: hidden;
+}
+.opt-indicator {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid var(--border);
+  transition: all 0.2s var(--ease); position: relative;
+}
+.opt-text { font-size: 0.92rem; font-weight: 400; color: var(--dim); transition: color 0.2s; }
+.opt:hover { border-color: rgba(0,240,212,0.35); background: rgba(0,240,212,0.04); }
+.opt:hover .opt-text { color: var(--text); }
+.opt:hover .opt-indicator { border-color: var(--cyan); }
+.opt.selected { border-color: var(--cyan); background: rgba(0,240,212,0.06); }
+.opt.selected .opt-indicator {
+  background: var(--cyan); border-color: var(--cyan);
+  box-shadow: 0 0 12px rgba(0,240,212,0.5);
+}
+.opt.selected .opt-indicator::after {
+  content: '';
+  position: absolute; inset: 3px;
+  background: var(--bg); border-radius: 50%;
+}
+.opt.selected .opt-text { color: var(--text); }
+
+.opt-letter {
+  font-family: var(--font-display); font-size: 0.75rem; letter-spacing: 0.1em;
+  color: var(--muted); transition: color 0.2s;
+}
+.opt.selected .opt-letter { color: var(--cyan); }
+
+.quiz-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 20px;
+}
+.btn-back {
+  background: var(--glass); border: 1px solid var(--border);
+  color: var(--dim); border-radius: 12px; padding: 12px 24px;
+  cursor: pointer; font-family: var(--font-body); font-size: 0.85rem; font-weight: 500;
+  transition: all 0.2s var(--ease);
+}
+.btn-back:hover { color: var(--text); border-color: var(--dim); }
+.btn-back:disabled { opacity: 0.3; pointer-events: none; }
+
+.btn-next {
+  background: linear-gradient(135deg, var(--cyan), var(--violet));
+  color: #06080f; border: none; border-radius: 12px; padding: 12px 32px;
+  cursor: pointer; font-family: var(--font-display); font-size: 1rem;
+  letter-spacing: 0.12em; transition: all 0.2s var(--ease);
+  box-shadow: 0 0 30px rgba(0,240,212,0.15);
+}
+.btn-next:hover { transform: translateY(-1px); box-shadow: 0 0 50px rgba(0,240,212,0.25); }
+.btn-next:disabled { opacity: 0.4; pointer-events: none; }
+
+/* ── LOADING ────────────────────────── */
+#screen-loading { text-align: center; padding: 120px 20px; }
+.loader-ring {
+  width: 72px; height: 72px; border-radius: 50%;
+  border: 2px solid var(--bg3);
+  border-top-color: var(--cyan);
+  border-right-color: var(--violet);
+  animation: spin 1s linear infinite; margin: 0 auto 24px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.load-title {
+  font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 0.1em;
+  color: var(--text); margin-bottom: 8px;
+}
+.load-sub { color: var(--muted); font-size: 0.82rem; letter-spacing: 0.1em; }
+
+/* ── RESULTS ────────────────────────── */
+#screen-results { animation: slideUp 0.6s var(--ease) both; }
+
+.res-hero { text-align: center; padding: 48px 20px 36px; }
+.res-type-label {
+  display: inline-block; padding: 6px 16px; border-radius: 999px;
+  border: 1px solid rgba(245,158,11,0.4); background: rgba(245,158,11,0.08);
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--amber); margin-bottom: 14px;
+}
+.res-main-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  letter-spacing: 0.06em; line-height: 0.95;
+  background: linear-gradient(135deg, var(--text), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 10px;
+}
+.res-tagline { color: var(--dim); font-size: 0.95rem; font-weight: 300; }
+.res-credit { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--muted); margin-top: 12px; }
+
+.results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.r-card {
+  background: var(--glass); border: 1px solid var(--border);
+  border-radius: 18px; padding: 24px;
+  position: relative; overflow: hidden;
+  backdrop-filter: blur(16px);
+  transition: border-color 0.2s, transform 0.2s;
+}
+.r-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-2px); }
+.r-card.full { grid-column: 1 / -1; }
+.r-card::before {
+  content: attr(data-accent-line);
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.r-card[data-color="cyan"]::before { background: linear-gradient(90deg, transparent, var(--cyan), transparent); }
+.r-card[data-color="violet"]::before { background: linear-gradient(90deg, transparent, var(--violet), transparent); }
+.r-card[data-color="amber"]::before { background: linear-gradient(90deg, transparent, var(--amber), transparent); }
+
+.r-emoji { font-size: 2.2rem; display: block; margin-bottom: 12px; }
+.r-label {
+  font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 4px;
+}
+.r-value { font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 0.06em; }
+.r-value.cyan { color: var(--cyan); }
+.r-value.violet { color: var(--violet); }
+.r-sub { font-size: 0.78rem; color: var(--dim); margin-top: 6px; line-height: 1.5; }
+
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.tag {
+  padding: 5px 14px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em;
+}
+.tag-s { background: rgba(16,185,129,0.1); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.tag-w { background: rgba(244,63,94,0.1); color: var(--red); border: 1px solid rgba(244,63,94,0.2); }
+
+.roadmap { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.phase {
+  background: var(--bg2); border-radius: 12px; padding: 16px 18px;
+  border-left: 3px solid var(--violet);
+  position: relative;
+}
+.phase-num {
+  font-family: var(--font-display); font-size: 0.7rem; letter-spacing: 0.15em;
+  color: var(--violet); display: block; margin-bottom: 3px;
+}
+.phase-title { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.phase-text { font-size: 0.78rem; color: var(--dim); line-height: 1.55; }
+
+.btn-retry {
+  width: 100%; margin-top: 20px;
+  background: transparent; border: 1.5px solid var(--border);
+  color: var(--dim); border-radius: 14px; padding: 16px;
+  font-family: var(--font-body); font-size: 0.9rem; font-weight: 500;
+  cursor: pointer; letter-spacing: 0.05em;
+  transition: all 0.25s var(--ease);
+}
+.btn-retry:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,240,212,0.04); }
+
+/* BIRTH YEAR INPUT */
+.year-input-wrap {
+  margin: 28px auto 0; max-width: 340px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.year-label {
+  font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); text-align: center;
+}
+.year-row { display: flex; gap: 10px; align-items: center; }
+.year-input {
+  flex: 1; background: var(--bg2); border: 1.5px solid var(--border);
+  color: var(--text); border-radius: 12px; padding: 14px 18px;
+  font-family: var(--font-display); font-size: 1.6rem; letter-spacing: 0.1em;
+  text-align: center; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -moz-appearance: textfield;
+}
+.year-input::-webkit-outer-spin-button,
+.year-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.year-input:focus { border-color: var(--cyan); box-shadow: 0 0 20px rgba(0,240,212,0.1); }
+.year-input::placeholder { color: var(--muted); font-size: 1rem; letter-spacing: 0.05em; }
+.year-hint { font-size: 0.7rem; color: var(--muted); text-align: center; }
+
+/* ACTUAL GEN BADGE in results */
+.actual-gen-card {
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 16px 20px;
+  margin-top: 16px;
+  display: flex; align-items: center; gap: 16px;
+  position: relative; overflow: hidden;
+}
+.actual-gen-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--amber), transparent);
+}
+.actual-gen-icon { font-size: 1.8rem; flex-shrink: 0; }
+.actual-gen-info { flex: 1; }
+.actual-gen-label {
+  font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 3px;
+}
+.actual-gen-name {
+  font-family: var(--font-display); font-size: 1.2rem;
+  letter-spacing: 0.08em; color: var(--amber);
+}
+.actual-gen-year { font-size: 0.75rem; color: var(--dim); margin-top: 2px; }
+
+/* MATCH/MISMATCH badge */
+.gen-match-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 999px;
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em;
+}
+.match { background: rgba(16,185,129,0.1); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
+.mismatch { background: rgba(245,158,11,0.1); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+
+@media (max-width: 600px) {
+  .results-grid { grid-template-columns: 1fr; }
+  .topbar { padding: 14px 18px; }
+  .hero-stats { gap: 20px; }
+  .q-card { padding: 24px; }
+}
+</style>
 </head>
 <body>
-<div class="bg-canvas"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<div class="bg-layer">
+  <div class="grid-bg"></div>
+  <div class="aurora aurora-1"></div>
+  <div class="aurora aurora-2"></div>
+  <div class="aurora aurora-3"></div>
+</div>
+
 <div class="app">
-    <div class="topbar">
-        <div class="logo-container">
-            <div class="logo">⚡ GenAnalyzer</div>
-            <div class="logo-credit">by Ohab Johory Afad</div>
-        </div>
-        <div class="controls">
-            <button class="btn-icon" onclick="toggleLang()">BN / EN</button>
-            <button class="btn-icon" onclick="toggleTheme()">🌓 Theme</button>
-        </div>
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo-wrap">
+      <div class="logo">GENANALYZER</div>
+      <div class="logo-sub">by Ohab Johory Afad</div>
     </div>
-    <div class="main">
-        <!-- Hero -->
-        <div class="screen" id="screen-hero">
-            <div class="hero">
-                <div class="hero-badge">Psychological Engine v2.0</div>
-                <div class="creator-badge">Created by Ohab Johory Afad</div>
-                <h1>Who Are You In The <br>Global Timeline?</h1>
-                <p>An advanced 30-question diagnostic to reveal your generation mindset, personality profile, and a custom growth roadmap.</p>
-                <button class="btn-start" onclick="startQuiz()">Start Analysis →</button>
-            </div>
-        </div>
-
-        <!-- Quiz -->
-        <div class="screen hidden" id="screen-quiz">
-            <div class="quiz-header">
-                <div class="progress-info"><span id="prog-label">Question 1/30</span><span id="prog-pct">0%</span></div>
-                <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
-                <span class="category-tag" id="cat-tag">Technology</span>
-            </div>
-            <div class="q-card">
-                <div class="q-text" id="q-text">Loading question...</div>
-                <div id="options-container"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-top:20px">
-                <button class="btn-icon" id="btn-prev" onclick="prevQ()">← Back</button>
-                <button class="btn-start" style="padding:12px 30px" id="btn-next" onclick="nextQ()">Next →</button>
-            </div>
-        </div>
-
-        <!-- Loading -->
-        <div class="screen hidden" id="screen-loading">
-            <div class="loading-screen">
-                <div class="dna-loader"></div>
-                <h2 id="load-msg">Synthesizing Profile...</h2>
-            </div>
-        </div>
-
-        <!-- Results -->
-        <div class="screen hidden" id="screen-results">
-            <div class="hero" style="padding:20px 0">
-                <h1 id="res-name">The Visionary</h1>
-                <p id="res-tagline">Calculating your persona...</p>
-                <p style="font-size:0.75rem; color:var(--text2); margin-top:10px">Powered by GenAnalyzer Analysis Engine | Ohab Johory Afad</p>
-            </div>
-            <div class="results-grid">
-                <div class="r-card">
-                    <div class="r-emoji" id="res-gen-emoji">🚀</div>
-                    <div class="r-main" id="res-gen-type">Gen Z Mindset</div>
-                    <div class="r-sub">Your cognitive patterns align with digital-native philosophies.</div>
-                </div>
-                <div class="r-card">
-                    <div class="r-emoji" id="res-loc-emoji">🇯🇵</div>
-                    <div class="r-main" id="res-loc-type">Tokyo, 2024</div>
-                    <div class="r-sub">Your lifestyle values match high-tech, urban efficiency.</div>
-                </div>
-                <div class="r-card full">
-                    <div class="r-main">Strengths & Growth</div>
-                    <div id="res-strengths"></div>
-                    <div id="res-weaknesses" style="margin-top:10px"></div>
-                </div>
-                <div class="r-card full">
-                    <div class="r-main" style="color:var(--accent3)">🗺️ AI Growth Roadmap</div>
-                    <div id="res-roadmap"></div>
-                </div>
-            </div>
-            <button class="btn-start" style="width:100%;margin-top:20px" onclick="location.reload()">Retake Assessment</button>
-        </div>
+    <div class="top-controls">
+      <button class="ctl-btn" onclick="toggleLang()">BN / EN</button>
+      <button class="ctl-btn" onclick="toggleTheme()">◐ Theme</button>
     </div>
+  </header>
+
+  <div class="main">
+
+    <!-- HERO -->
+    <div class="screen" id="screen-hero">
+      <div>
+        <div class="hero-eyebrow">Psychological Engine v2.0</div>
+        <h1 class="hero-title">
+          <span class="title-line1">WHO ARE</span>
+          <span class="title-line2">YOU?</span>
+        </h1>
+        <p class="hero-by">A diagnostic by <span>Ohab Johory Afad</span></p>
+        <p class="hero-desc">30 questions. An advanced engine that pinpoints your generational mindset, personality profile, and builds a custom growth roadmap.</p>
+        <div class="year-input-wrap">
+          <div class="year-label">Your Birth Year</div>
+          <div class="year-row">
+            <input class="year-input" type="number" id="birth-year" min="1940" max="2015" placeholder="e.g. 1998" />
+          </div>
+          <div class="year-hint">Used to compare your actual generation vs. your mindset profile</div>
+        </div>
+        <button class="btn-cta" onclick="startQuiz()" style="margin-top:28px">
+          Begin Analysis <span class="arrow">→</span>
+        </button>
+        <div class="hero-stats">
+          <div class="stat"><div class="stat-num">30</div><div class="stat-label">Questions</div></div>
+          <div class="stat"><div class="stat-num">5</div><div class="stat-label">Archetypes</div></div>
+          <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Insight</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="screen hidden" id="screen-quiz">
+      <div class="quiz-meta">
+        <span class="quiz-counter" id="q-counter">01</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span class="quiz-pct" id="q-pct">0% Complete</span>
+          <span class="quiz-cat" id="q-cat">Category</span>
+        </div>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="q-card">
+        <span class="q-num" id="q-num-label">QUESTION 01 / 30</span>
+        <div class="q-text" id="q-text">Loading...</div>
+        <div id="opts-wrap"></div>
+      </div>
+      <div class="quiz-nav">
+        <button class="btn-back" id="btn-back" onclick="prevQ()">← Back</button>
+        <button class="btn-next" id="btn-next" onclick="nextQ()">Next →</button>
+      </div>
+    </div>
+
+    <!-- LOADING -->
+    <div class="screen hidden" id="screen-loading">
+      <div style="text-align:center;padding:100px 20px">
+        <div class="loader-ring"></div>
+        <div class="load-title" id="load-msg">SYNTHESIZING</div>
+        <div class="load-sub">Mapping your cognitive profile...</div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="screen hidden" id="screen-results">
+      <div class="res-hero">
+        <div class="res-type-label" id="res-gen-label">Gen Z Mindset</div>
+        <h2 class="res-main-title" id="res-name">The Visionary</h2>
+        <p class="res-tagline" id="res-tagline">Your profile is loading...</p>
+        <p class="res-credit">GenAnalyzer Analysis Engine · Ohab Johory Afad</p>
+      </div>
+
+      <div class="results-grid">
+        <div class="r-card" data-color="cyan">
+          <span class="r-emoji" id="res-emoji">🚀</span>
+          <div class="r-label">Mindset Type</div>
+          <div class="r-value cyan" id="res-gen-type">ALPHA</div>
+          <div class="r-sub">Digital-native cognitive patterns.</div>
+        </div>
+        <div class="r-card" data-color="violet">
+          <span class="r-emoji" id="res-loc-emoji">🌏</span>
+          <div class="r-label">Lifestyle Match</div>
+          <div class="r-value violet" id="res-loc">Seoul 2025</div>
+          <div class="r-sub" id="res-loc-sub">High-tech urban efficiency.</div>
+        </div>
+        <div class="r-card full" data-color="cyan">
+          <div class="r-label">Strengths & Challenges</div>
+          <div class="tag-row" id="res-strengths"></div>
+          <div class="tag-row" id="res-weaknesses"></div>
+          <div class="actual-gen-card" id="actual-gen-card" style="display:none">
+            <div class="actual-gen-icon" id="actual-gen-icon">📅</div>
+            <div class="actual-gen-info">
+              <div class="actual-gen-label">Your Actual Generation (by birth year)</div>
+              <div class="actual-gen-name" id="actual-gen-name">—</div>
+              <div class="actual-gen-year" id="actual-gen-year">Born —</div>
+            </div>
+            <div id="gen-match-badge"></div>
+          </div>
+        </div>
+        <div class="r-card full" data-color="amber">
+          <div class="r-label">Growth Roadmap</div>
+          <div class="r-value amber" style="color:var(--amber);margin-bottom:4px;font-size:1.1rem">YOUR PATH FORWARD</div>
+          <div class="roadmap" id="res-roadmap"></div>
+        </div>
+      </div>
+      <button class="btn-retry" onclick="location.reload()">↺ Retake Assessment</button>
+    </div>
+
+  </div>
 </div>
 
 <script>
-let currentLang = 'en';
-let currentStep = 0;
-let answers = [];
+// Cursor
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{ mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'; });
+function animRing(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing);}
+animRing();
+document.querySelectorAll('button,a,.opt').forEach(el=>{el.addEventListener('mouseenter',()=>document.body.classList.add('hovering'));el.addEventListener('mouseleave',()=>document.body.classList.remove('hovering'));});
 
-const questions = [
-    {q: {en: "How do you solve a problem with a device you've never used?", bn: "আপনি কখনও ব্যবহার করেননি এমন একটি ডিভাইস দিয়ে সমস্যা কীভাবে সমাধান করেন?"}, 
-     cat: "Tech", 
-     options: [
-        {text: {en: "Look for a tutorial on YouTube/TikTok", bn: "ইউটিউব বা টিকটকে টিউটোরিয়াল খুঁজি"}, scores: {z: 3, alpha: 2}},
-        {text: {en: "Google the manual or read forums", bn: "গুগল বা ফোরাম চেক করি"}, scores: {millennial: 3, x: 1}},
-        {text: {en: "Just start clicking until it works", bn: "কাজ না হওয়া পর্যন্ত ক্লিক করতে থাকি"}, scores: {alpha: 3, z: 1}},
-        {text: {en: "Ask someone younger for help", bn: "অল্পবয়সী কারও সাহায্য চাই"}, scores: {boomer: 4}}
-    ]},
-    {q: {en: "What is your stance on AI (ChatGPT/AI Art)?", bn: "AI (ChatGPT/AI Art) নিয়ে আপনার অবস্থান কী?"}, 
-     cat: "Tech", 
-     options: [
-        {text: {en: "It's my primary assistant daily", bn: "এটি আমার প্রতিদিনের প্রধান সহকারী"}, scores: {alpha: 4, z: 2}},
-        {text: {en: "Useful for work, but I verify everything", bn: "কাজের জন্য দরকারি, তবে সবকিছু যাচাই করি"}, scores: {millennial: 3}},
-        {text: {en: "I'm concerned about human jobs", bn: "মানুষের চাকরি নিয়ে আমি চিন্তিত"}, scores: {x: 3, boomer: 2}},
-        {text: {en: "I avoid using it as much as possible", bn: "আমি যতটা সম্ভব এড়িয়ে চলি"}, scores: {boomer: 4}}
-    ]},
-    {q: {en: "Your ideal work environment is...", bn: "আপনার আদর্শ কাজের পরিবেশ হলো..."}, 
-     cat: "Lifestyle", 
-     options: [
-        {text: {en: "Fully remote from anywhere in the world", bn: "বিশ্বের যেকোনো প্রান্ত থেকে রিমোট কাজ"}, scores: {z: 3, millennial: 2}},
-        {text: {en: "A modern office with social perks", bn: "সামাজিক সুবিধা সম্পন্ন আধুনিক অফিস"}, scores: {millennial: 3}},
-        {text: {en: "Stability and a fixed 9-to-5 schedule", bn: "স্থায়িত্ব এবং একটি নির্দিষ্ট ৯টা-৫টা সময়"}, scores: {x: 4, boomer: 2}},
-        {text: {en: "Being my own boss/Freelancing", bn: "নিজের বস হওয়া/ফ্রিল্যান্সিং"}, scores: {alpha: 2, z: 3}}
-    ]},
-    {q: {en: "How do you view financial investment?", bn: "আপনি আর্থিক বিনিয়োগকে কীভাবে দেখেন?"}, 
-     cat: "Money", 
-     options: [
-        {text: {en: "Crypto, NFTs, and high-risk tech stocks", bn: "ক্রিপ্টো, এনএফটি এবং হাই-রিস্ক টেক স্টক"}, scores: {alpha: 3, z: 3}},
-        {text: {en: "Real estate and diversified index funds", bn: "রিয়েল এস্টেট এবং বৈচিত্র্যময় ইনডেক্স ফান্ড"}, scores: {millennial: 4}},
-        {text: {en: "Savings accounts and gold", bn: "সঞ্চয়ী অ্যাকাউন্ট এবং স্বর্ণ"}, scores: {x: 3, boomer: 3}},
-        {text: {en: "Pension funds and government bonds", bn: "পেনশন ফান্ড এবং সরকারি বন্ড"}, scores: {boomer: 4}}
-    ]},
-    {q: {en: "How do you prefer to communicate with friends?", bn: "বন্ধুদের সাথে কীভাবে যোগাযোগ করতে পছন্দ করেন?"}, 
-     cat: "Social", 
-     options: [
-        {text: {en: "Voice notes and short video clips", bn: "ভয়েস নোট এবং ছোট ভিডিও ক্লিপ"}, scores: {alpha: 3, z: 3}},
-        {text: {en: "Texting via WhatsApp/Messenger", bn: "হোয়াটসঅ্যাপ/মেসেঞ্জারে টেক্সট করা"}, scores: {millennial: 4}},
-        {text: {en: "A quick phone call", bn: "একটি দ্রুত ফোন কল"}, scores: {x: 3, boomer: 1}},
-        {text: {en: "Meeting in person only", bn: "কেবল সরাসরি দেখা করা"}, scores: {boomer: 4}}
-    ]}
+// State
+let lang='en', step=0, answers=[], birthYear=null;
+
+// Questions
+const questions=[
+  {q:{en:"How do you solve a problem with a device you've never used?",bn:"কখনও ব্যবহার করেননি এমন ডিভাইস দিয়ে সমস্যা কীভাবে সমাধান করেন?"},cat:"Technology",opts:[
+    {t:{en:"Look for a tutorial on YouTube/TikTok",bn:"ইউটিউব বা টিকটকে টিউটোরিয়াল খুঁজি"},s:{z:3,alpha:2}},
+    {t:{en:"Google the manual or read forums",bn:"গুগল বা ফোরাম চেক করি"},s:{millennial:3,x:1}},
+    {t:{en:"Just start clicking until it works",bn:"কাজ না হওয়া পর্যন্ত ক্লিক করতে থাকি"},s:{alpha:3,z:1}},
+    {t:{en:"Ask someone younger for help",bn:"অল্পবয়সী কারও সাহায্য চাই"},s:{boomer:4}}
+  ]},
+  {q:{en:"What is your stance on AI tools like ChatGPT?",bn:"ChatGPT-এর মতো AI টুলস নিয়ে আপনার অবস্থান কী?"},cat:"Technology",opts:[
+    {t:{en:"It's my primary assistant every day",bn:"এটি আমার প্রতিদিনের প্রধান সহকারী"},s:{alpha:4,z:2}},
+    {t:{en:"Useful for work, but I verify everything",bn:"কাজের জন্য দরকারি, তবে সবকিছু যাচাই করি"},s:{millennial:3}},
+    {t:{en:"I'm concerned about job displacement",bn:"চাকরি হারানোর ভয়ে চিন্তিত"},s:{x:3,boomer:2}},
+    {t:{en:"I avoid it as much as possible",bn:"আমি যতটা সম্ভব এড়িয়ে চলি"},s:{boomer:4}}
+  ]},
+  {q:{en:"Your ideal work environment is...",bn:"আপনার আদর্শ কাজের পরিবেশ হলো..."},cat:"Lifestyle",opts:[
+    {t:{en:"Fully remote from anywhere in the world",bn:"বিশ্বের যেকোনো জায়গা থেকে রিমোট"},s:{z:3,millennial:2}},
+    {t:{en:"Modern office with flexible hours",bn:"নমনীয় সময় সহ আধুনিক অফিস"},s:{millennial:3}},
+    {t:{en:"Stable 9-to-5 with clear structure",bn:"স্থায়িত্ব এবং নির্দিষ্ট সময়সূচি"},s:{x:4,boomer:2}},
+    {t:{en:"My own freelance/business hustle",bn:"নিজের ফ্রিল্যান্স বা ব্যবসা"},s:{alpha:2,z:3}}
+  ]},
+  {q:{en:"How do you approach financial investment?",bn:"আপনি আর্থিক বিনিয়োগকে কীভাবে দেখেন?"},cat:"Money",opts:[
+    {t:{en:"Crypto, NFTs, high-risk tech plays",bn:"ক্রিপ্টো, এনএফটি এবং হাই-রিস্ক টেক"},s:{alpha:3,z:3}},
+    {t:{en:"Diversified index funds and real estate",bn:"বৈচিত্র্যময় ইনডেক্স ফান্ড ও রিয়েল এস্টেট"},s:{millennial:4}},
+    {t:{en:"Savings accounts and gold",bn:"সঞ্চয়ী অ্যাকাউন্ট এবং স্বর্ণ"},s:{x:3,boomer:3}},
+    {t:{en:"Pension funds and government bonds",bn:"পেনশন ফান্ড এবং সরকারি বন্ড"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you prefer to communicate with friends?",bn:"বন্ধুদের সাথে কীভাবে যোগাযোগ করতে পছন্দ করেন?"},cat:"Social",opts:[
+    {t:{en:"Voice notes and short video clips",bn:"ভয়েস নোট এবং ছোট ভিডিও ক্লিপ"},s:{alpha:3,z:3}},
+    {t:{en:"Texting via WhatsApp/Messenger",bn:"হোয়াটসঅ্যাপ/মেসেঞ্জারে টেক্সট"},s:{millennial:4}},
+    {t:{en:"A quick phone call",bn:"একটি দ্রুত ফোন কল"},s:{x:3,boomer:1}},
+    {t:{en:"Meeting in person only",bn:"কেবল সরাসরি দেখা করা"},s:{boomer:4}}
+  ]},
+  {q:{en:"What drives you to post on social media?",bn:"সোশ্যাল মিডিয়ায় পোস্ট দিতে কী অনুপ্রাণিত করে?"},cat:"Social",opts:[
+    {t:{en:"Building a personal brand",bn:"ব্যক্তিগত ব্র্যান্ড তৈরি করা"},s:{alpha:3,z:2}},
+    {t:{en:"Sharing experiences and memories",bn:"অভিজ্ঞতা এবং স্মৃতি শেয়ার করা"},s:{millennial:3}},
+    {t:{en:"Keeping in touch with old friends",bn:"পুরনো বন্ধুদের সাথে যোগাযোগ রাখা"},s:{x:3,boomer:2}},
+    {t:{en:"I rarely use social media",bn:"আমি খুব কমই সোশ্যাল মিডিয়া ব্যবহার করি"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you consume entertainment?",bn:"আপনি বিনোদন কীভাবে উপভোগ করেন?"},cat:"Lifestyle",opts:[
+    {t:{en:"Shorts, reels, and live streams",bn:"শর্টস, রিলস এবং লাইভ স্ট্রিম"},s:{alpha:4,z:2}},
+    {t:{en:"Netflix series and podcasts",bn:"নেটফ্লিক্স সিরিজ এবং পডকাস্ট"},s:{millennial:4}},
+    {t:{en:"Cable TV and weekend movies",bn:"ক্যাবল টিভি এবং সাপ্তাহিক সিনেমা"},s:{x:3,boomer:2}},
+    {t:{en:"Books, newspapers, radio",bn:"বই, সংবাদপত্র, রেডিও"},s:{boomer:4}}
+  ]},
+  {q:{en:"Your relationship with mental health is...",bn:"মানসিক স্বাস্থ্যের সাথে আপনার সম্পর্ক কেমন?"},cat:"Psychology",opts:[
+    {t:{en:"Openly discussed and prioritized",bn:"খোলামেলাভাবে আলোচিত এবং অগ্রাধিকার দেওয়া"},s:{z:4,alpha:2}},
+    {t:{en:"Something I actively work on with therapy",bn:"থেরাপির মাধ্যমে সক্রিয়ভাবে কাজ করি"},s:{millennial:4}},
+    {t:{en:"Private — I handle it on my own",bn:"ব্যক্তিগত — নিজেই সামলাই"},s:{x:4}},
+    {t:{en:"Not something I openly discuss",bn:"এটি নিয়ে খোলাখুলি কথা বলি না"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you approach learning new skills?",bn:"নতুন দক্ষতা শেখার ক্ষেত্রে আপনার পদ্ধতি কী?"},cat:"Psychology",opts:[
+    {t:{en:"Online courses, AI tutors, YouTube",bn:"অনলাইন কোর্স, AI টিউটর, ইউটিউব"},s:{alpha:3,z:2}},
+    {t:{en:"Structured bootcamps and certifications",bn:"কাঠামোবদ্ধ বুটক্যাম্প এবং সার্টিফিকেশন"},s:{millennial:3}},
+    {t:{en:"Reading books and taking notes",bn:"বই পড়া এবং নোট নেওয়া"},s:{x:3,boomer:2}},
+    {t:{en:"Learning through doing on the job",bn:"কাজ করতে করতে শেখা"},s:{boomer:3,x:1}}
+  ]},
+  {q:{en:"What is your attitude toward climate change?",bn:"জলবায়ু পরিবর্তন সম্পর্কে আপনার মনোভাব কী?"},cat:"Values",opts:[
+    {t:{en:"I'm a digital activist — memes and hashtags matter",bn:"আমি ডিজিটাল অ্যাক্টিভিস্ট — মিম এবং হ্যাশট্যাগ গুরুত্বপূর্ণ"},s:{z:3,alpha:2}},
+    {t:{en:"I make conscious eco-friendly choices daily",bn:"প্রতিদিন পরিবেশবান্ধব পছন্দ করি"},s:{millennial:4}},
+    {t:{en:"It's a problem but economy comes first",bn:"সমস্যা, তবে অর্থনীতিই আগে"},s:{x:3}},
+    {t:{en:"It's been exaggerated by media",bn:"মিডিয়া এটি অতিরঞ্জিত করেছে"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you define success?",bn:"আপনি সাফল্যকে কীভাবে সংজ্ঞায়িত করেন?"},cat:"Values",opts:[
+    {t:{en:"Impact and creative self-expression",bn:"প্রভাব এবং সৃজনশীল আত্মপ্রকাশ"},s:{alpha:3,z:3}},
+    {t:{en:"Work-life balance and financial freedom",bn:"কর্ম-জীবনের ভারসাম্য এবং আর্থিক স্বাধীনতা"},s:{millennial:4}},
+    {t:{en:"Career title and material achievements",bn:"পেশাগত পদবি এবং বস্তুগত অর্জন"},s:{x:4}},
+    {t:{en:"Family security and leaving a legacy",bn:"পারিবারিক নিরাপত্তা এবং উত্তরাধিকার"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you feel about hustle culture?",bn:"হাসল কালচার সম্পর্কে আপনার মতামত কী?"},cat:"Lifestyle",opts:[
+    {t:{en:"I build in public and grind 24/7",bn:"সর্বদা পরিশ্রম করি এবং সব শেয়ার করি"},s:{alpha:4}},
+    {t:{en:"Productive, but balance is key",bn:"উৎপাদনশীল, তবে ভারসাম্য দরকার"},s:{millennial:3,z:1}},
+    {t:{en:"I prefer steady and consistent work",bn:"স্থির এবং ধারাবাহিক কাজ পছন্দ করি"},s:{x:3}},
+    {t:{en:"Work to live, not live to work",bn:"বেঁচে থাকার জন্য কাজ, কাজের জন্য বাঁচা নয়"},s:{boomer:3,x:1}}
+  ]},
+  {q:{en:"Your news consumption method is...",bn:"আপনি কীভাবে সংবাদ গ্রহণ করেন?"},cat:"Technology",opts:[
+    {t:{en:"Twitter/X, Reddit, or TikTok news creators",bn:"টুইটার/X, রেডিট বা টিকটক নিউজ ক্রিয়েটর"},s:{z:4,alpha:2}},
+    {t:{en:"News apps and curated newsletters",bn:"নিউজ অ্যাপ এবং কিউরেটেড নিউজলেটার"},s:{millennial:3}},
+    {t:{en:"Specific trusted TV channels",bn:"নির্দিষ্ট বিশ্বস্ত টিভি চ্যানেল"},s:{x:3}},
+    {t:{en:"Print newspapers and evening news",bn:"মুদ্রণ সংবাদপত্র এবং সন্ধ্যার খবর"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you handle disagreement at work?",bn:"কর্মক্ষেত্রে মতবিরোধ কীভাবে সামলান?"},cat:"Psychology",opts:[
+    {t:{en:"Call it out directly and build consensus",bn:"সরাসরি বলি এবং ঐকমত্য গড়ি"},s:{z:3,alpha:2}},
+    {t:{en:"Use data and logic to persuade",bn:"ডেটা এবং যুক্তি দিয়ে বোঝাই"},s:{millennial:4}},
+    {t:{en:"Work around it and stay focused",bn:"এড়িয়ে চলি এবং কাজে মনোযোগ দিই"},s:{x:4}},
+    {t:{en:"Defer to authority or hierarchy",bn:"কর্তৃপক্ষ বা শ্রেণিবিন্যাসকে সম্মান করি"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you view privacy online?",bn:"অনলাইন গোপনীয়তা নিয়ে আপনার দৃষ্টিভঙ্গি কী?"},cat:"Technology",opts:[
+    {t:{en:"Share everything — authenticity is everything",bn:"সবকিছু শেয়ার করি — সততাই সব"},s:{alpha:3,z:2}},
+    {t:{en:"Share selectively and use privacy tools",bn:"সিলেক্টিভলি শেয়ার করি এবং প্রাইভেসি টুল ব্যবহার করি"},s:{millennial:3}},
+    {t:{en:"Keep personal info offline as much as possible",bn:"যতটা সম্ভব ব্যক্তিগত তথ্য অফলাইনে রাখি"},s:{x:4}},
+    {t:{en:"I don't trust the internet with personal data",bn:"ব্যক্তিগত ডেটার জন্য ইন্টারনেটকে বিশ্বাস করি না"},s:{boomer:4}}
+  ]},
+  {q:{en:"How important is physical fitness to you?",bn:"শারীরিক সুস্থতা আপনার কাছে কতটা গুরুত্বপূর্ণ?"},cat:"Lifestyle",opts:[
+    {t:{en:"Gym aesthetics and content creation",bn:"জিম অ্যাসথেটিক্স এবং কন্টেন্ট তৈরি"},s:{alpha:4,z:2}},
+    {t:{en:"Regular workouts for mental and physical health",bn:"মানসিক ও শারীরিক স্বাস্থ্যের জন্য নিয়মিত ব্যায়াম"},s:{millennial:4}},
+    {t:{en:"Occasional walks and weekend sports",bn:"মাঝে মাঝে হাঁটা এবং সাপ্তাহিক খেলাধুলা"},s:{x:3}},
+    {t:{en:"I'm not very active physically",bn:"আমি শারীরিকভাবে তেমন সক্রিয় নই"},s:{boomer:2}}
+  ]},
+  {q:{en:"How do you respond to rapid technological change?",bn:"দ্রুত প্রযুক্তিগত পরিবর্তনের সাথে কীভাবে প্রতিক্রিয়া করেন?"},cat:"Technology",opts:[
+    {t:{en:"I embrace it, adopt early",bn:"আমি স্বাগত জানাই, আগেভাগে গ্রহণ করি"},s:{alpha:4,z:2}},
+    {t:{en:"I evaluate and adopt strategically",bn:"মূল্যায়ন করে কৌশলগতভাবে গ্রহণ করি"},s:{millennial:4}},
+    {t:{en:"I adapt slowly but get there",bn:"ধীরে ধীরে মানিয়ে নিই"},s:{x:3}},
+    {t:{en:"I prefer things staying the same",bn:"জিনিস একই থাকুক এটাই পছন্দ করি"},s:{boomer:4}}
+  ]},
+  {q:{en:"What is your view on traditional gender roles?",bn:"ঐতিহ্যগত লিঙ্গ ভূমিকার বিষয়ে আপনার মতামত কী?"},cat:"Values",opts:[
+    {t:{en:"Completely fluid — labels are limiting",bn:"সম্পূর্ণ তরল — লেবেল সীমাবদ্ধকারী"},s:{alpha:3,z:4}},
+    {t:{en:"Equality matters, but I'm pragmatic",bn:"সমতা গুরুত্বপূর্ণ, তবে বাস্তববাদী"},s:{millennial:3}},
+    {t:{en:"Balance of tradition and modern values",bn:"ঐতিহ্য ও আধুনিক মূল্যবোধের ভারসাম্য"},s:{x:4}},
+    {t:{en:"Traditional roles have their place",bn:"ঐতিহ্যগত ভূমিকার নিজস্ব জায়গা আছে"},s:{boomer:4}}
+  ]},
+  {q:{en:"Where would you most want to live?",bn:"আপনি কোথায় থাকতে সবচেয়ে বেশি চান?"},cat:"Lifestyle",opts:[
+    {t:{en:"A vibrant global city that never sleeps",bn:"একটি প্রাণবন্ত বৈশ্বিক শহর যা কখনো ঘুমায় না"},s:{alpha:3,z:3}},
+    {t:{en:"A smart city with great amenities",bn:"দুর্দান্ত সুবিধা সহ একটি স্মার্ট শহর"},s:{millennial:3}},
+    {t:{en:"A quiet suburban or countryside home",bn:"শান্ত শহরতলি বা গ্রামাঞ্চলের বাড়ি"},s:{x:3,boomer:2}},
+    {t:{en:"In my hometown near family",bn:"পরিবারের কাছে আমার গ্রামে"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you approach relationships and dating?",bn:"সম্পর্ক ও ডেটিং সম্পর্কে আপনার দৃষ্টিভঙ্গি কী?"},cat:"Social",opts:[
+    {t:{en:"Online apps and digital connections first",bn:"অনলাইন অ্যাপ এবং ডিজিটাল সংযোগ আগে"},s:{alpha:3,z:3}},
+    {t:{en:"Mix of apps and organic meetups",bn:"অ্যাপ এবং স্বাভাবিক দেখা সাক্ষাতের মিশ্রণ"},s:{millennial:4}},
+    {t:{en:"Mostly through mutual friends or work",bn:"বেশিরভাগ পারস্পরিক বন্ধু বা কাজের মাধ্যমে"},s:{x:4}},
+    {t:{en:"Traditional family-arranged introductions",bn:"ঐতিহ্যগত পারিবারিক পরিচয়"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you feel about the future?",bn:"ভবিষ্যৎ সম্পর্কে আপনার অনুভূতি কেমন?"},cat:"Psychology",opts:[
+    {t:{en:"Excited — anything is possible",bn:"উত্তেজিত — সবকিছু সম্ভব"},s:{alpha:4,z:2}},
+    {t:{en:"Cautiously optimistic",bn:"সতর্কতার সাথে আশাবাদী"},s:{millennial:4}},
+    {t:{en:"Uncertain but I'll manage",bn:"অনিশ্চিত তবে সামলাব"},s:{x:3}},
+    {t:{en:"Worried about how much has changed",bn:"কতটা পরিবর্তন হয়েছে তা নিয়ে উদ্বিগ্ন"},s:{boomer:4}}
+  ]},
+  {q:{en:"Your view on remote education (online learning)?",bn:"অনলাইন শিক্ষার ব্যাপারে আপনার মতামত?"},cat:"Values",opts:[
+    {t:{en:"The future — better than classrooms",bn:"ভবিষ্যৎ — ক্লাসরুমের চেয়ে ভালো"},s:{alpha:4,z:2}},
+    {t:{en:"A great supplement to formal education",bn:"আনুষ্ঠানিক শিক্ষার একটি দারুণ পরিপূরক"},s:{millennial:3}},
+    {t:{en:"Useful in emergencies, but not ideal",bn:"জরুরি পরিস্থিতিতে দরকারি, কিন্তু আদর্শ নয়"},s:{x:3}},
+    {t:{en:"Real education requires real classrooms",bn:"সত্যিকারের শিক্ষায় সত্যিকারের ক্লাসরুম দরকার"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you handle boredom?",bn:"বিরক্তি কীভাবে সামলান?"},cat:"Psychology",opts:[
+    {t:{en:"Scroll endlessly on social media",bn:"সোশ্যাল মিডিয়ায় অন্তহীনভাবে স্ক্রোল করি"},s:{alpha:3,z:3}},
+    {t:{en:"Start a new side project or hobby",bn:"নতুন একটি সাইড প্রজেক্ট বা শখ শুরু করি"},s:{millennial:4}},
+    {t:{en:"Read or watch something meaningful",bn:"কিছু অর্থবহ পড়ি বা দেখি"},s:{x:3}},
+    {t:{en:"Do chores or outdoor activities",bn:"গৃহস্থালি কাজ বা বাইরে যাই"},s:{boomer:3}}
+  ]},
+  {q:{en:"What does \"home\" mean to you?",bn:"\"বাড়ি\" আপনার কাছে কী অর্থ বহন করে?"},cat:"Values",opts:[
+    {t:{en:"Wherever I have wifi and freedom",bn:"যেখানে ওয়াইফাই এবং স্বাধীনতা আছে"},s:{alpha:4,z:3}},
+    {t:{en:"A place I've built with purpose",bn:"আমার নিজের তৈরি একটি জায়গা"},s:{millennial:4}},
+    {t:{en:"The neighborhood I grew up in",bn:"যে পাড়ায় বড় হয়েছি"},s:{x:3,boomer:2}},
+    {t:{en:"Where my family and roots are",bn:"যেখানে আমার পরিবার এবং শিকড় আছে"},s:{boomer:4}}
+  ]},
+  {q:{en:"How important is social status to you?",bn:"সামাজিক মর্যাদা আপনার কাছে কতটা গুরুত্বপূর্ণ?"},cat:"Values",opts:[
+    {t:{en:"Follower count and online influence",bn:"ফলোয়ার সংখ্যা এবং অনলাইন প্রভাব"},s:{alpha:4,z:3}},
+    {t:{en:"Industry reputation and peer respect",bn:"শিল্প খ্যাতি এবং সহকর্মীর সম্মান"},s:{millennial:4}},
+    {t:{en:"Professional title and achievements",bn:"পেশাদার পদবি এবং অর্জন"},s:{x:4}},
+    {t:{en:"Community standing and family honor",bn:"সমাজে অবস্থান এবং পারিবারিক মান"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you feel about multitasking?",bn:"মাল্টিটাস্কিং সম্পর্কে আপনার মতামত কী?"},cat:"Psychology",opts:[
+    {t:{en:"I thrive juggling 5 things at once",bn:"একসাথে ৫টি কাজ সামলাতে পারি"},s:{alpha:4,z:2}},
+    {t:{en:"Productive, but I prefer deep work blocks",bn:"উৎপাদনশীল, তবে ডিপ ওয়ার্ক পছন্দ করি"},s:{millennial:4}},
+    {t:{en:"I focus on one task at a time",bn:"একসময়ে একটি কাজে মনোযোগ দিই"},s:{x:4}},
+    {t:{en:"Quality over quantity, always",bn:"সবসময় মানের উপর জোর দিই"},s:{boomer:3}}
+  ]},
+  {q:{en:"Which value resonates with you most?",bn:"কোন মূল্যবোধটি আপনার সাথে সবচেয়ে বেশি মিলে?"},cat:"Values",opts:[
+    {t:{en:"Innovation and disruption",bn:"উদ্ভাবন এবং বিঘ্নকারী পরিবর্তন"},s:{alpha:4,z:2}},
+    {t:{en:"Inclusivity and collaboration",bn:"অন্তর্ভুক্তি এবং সহযোগিতা"},s:{z:4,millennial:2}},
+    {t:{en:"Independence and self-reliance",bn:"স্বাধীনতা এবং আত্মনির্ভরশীলতা"},s:{x:4}},
+    {t:{en:"Discipline and respect for tradition",bn:"শৃঙ্খলা এবং ঐতিহ্যের প্রতি শ্রদ্ধা"},s:{boomer:4}}
+  ]},
+  {q:{en:"How do you make big life decisions?",bn:"বড় জীবনের সিদ্ধান্ত কীভাবে নেন?"},cat:"Psychology",opts:[
+    {t:{en:"Fast and intuitive — trust the gut",bn:"দ্রুত এবং স্বজ্ঞাত — অন্তর্দৃষ্টিকে বিশ্বাস করি"},s:{alpha:3,z:2}},
+    {t:{en:"Research, weigh options, then act",bn:"গবেষণা করি, বিকল্প বিবেচনা করি, তারপর পদক্ষেপ নিই"},s:{millennial:4}},
+    {t:{en:"Consult trusted advisors and data",bn:"বিশ্বস্ত পরামর্শদাতা ও ডেটার সাথে পরামর্শ করি"},s:{x:4}},
+    {t:{en:"Follow family wisdom and community norms",bn:"পারিবারিক জ্ঞান এবং সমাজের রীতি অনুসরণ করি"},s:{boomer:4}}
+  ]},
+  {q:{en:"Your relationship with personal growth is...",bn:"ব্যক্তিগত বৃদ্ধির সাথে আপনার সম্পর্ক..."},cat:"Psychology",opts:[
+    {t:{en:"Constant optimization — always levelling up",bn:"ক্রমাগত অপ্টিমাইজেশন — সবসময় উন্নতি করছি"},s:{alpha:4,z:2}},
+    {t:{en:"Intentional and structured self-development",bn:"উদ্দেশ্যমূলক এবং কাঠামোবদ্ধ আত্ম-উন্নয়ন"},s:{millennial:4}},
+    {t:{en:"Learning through experience, not books",bn:"বই নয়, অভিজ্ঞতার মাধ্যমে শেখা"},s:{x:3}},
+    {t:{en:"I've learned what I need to know",bn:"আমার যা শেখার তা ইতোমধ্যে শিখেছি"},s:{boomer:3}}
+  ]},
+  {q:{en:"How do you approach failure?",bn:"ব্যর্থতাকে আপনি কীভাবে দেখেন?"},cat:"Psychology",opts:[
+    {t:{en:"Fail fast, post the lesson, move on",bn:"দ্রুত ব্যর্থ হই, শিক্ষাটা শেয়ার করি, এগিয়ে যাই"},s:{alpha:4,z:2}},
+    {t:{en:"Reflect deeply, pivot, try again",bn:"গভীরভাবে ভাবি, পিভট করি, আবার চেষ্টা করি"},s:{millennial:4}},
+    {t:{en:"Keep it private and learn quietly",bn:"ব্যক্তিগত রাখি এবং চুপচাপ শিখি"},s:{x:4}},
+    {t:{en:"Avoid risk to avoid failure",bn:"ব্যর্থতা এড়াতে ঝুঁকি এড়াই"},s:{boomer:3}}
+  ]}
 ];
 
-// Fill with dummy questions for structure to reach 30
-for(let i=0; i<25; i++) {
-    questions.push({
-        q: {en: `Values check: How do you prioritize personal growth versus stability?`, bn: `আপনার ব্যক্তিগত বৃদ্ধি নাকি স্থায়িত্ব—কোনটি বেশি গুরুত্বপূর্ণ?`},
-        cat: "Psychology",
-        options: [
-            {text: {en: "Growth above all", bn: "বৃদ্ধিই সব"}, scores: {alpha: 3, z: 2}},
-            {text: {en: "Balance is key", bn: "ভারসাম্যই চাবিকাঠি"}, scores: {millennial: 3, x: 1}},
-            {text: {en: "Stability first", bn: "স্থায়িত্ব আগে"}, scores: {x: 3, boomer: 3}},
-            {text: {en: "Follow the path of elders", bn: "বড়দের পথ অনুসরণ করি"}, scores: {boomer: 4}}
-        ]
-    });
+const genData = {
+  alpha:    { name:"THE DIGITAL PIONEER", tagline:"You were born into the algorithm. You don't adapt to technology — you think in it.", emoji:"🤖", loc:"Seoul, 2026", locSub:"Ultra-connected, AI-first urban living.", label:"Alpha Gen Mindset", strengths:["Hyper-Adaptive","AI-Native","Future-Focused","Creator-First"], weaknesses:["Digital Overload","Impulsive Decision-Making"], phases:[{num:"PHASE 01",t:"Master the Tools",d:"Your generation instinct is your edge. Go beyond using AI to building with it. Learn prompt engineering, automation, and no-code platforms."},{num:"PHASE 02",t:"Build in Public",d:"The Seoul 2026 mindset: ship fast, share the process, attract your tribe. Consistency beats perfection for your archetype."},{num:"PHASE 03",t:"Architect Your Niche",d:"Define your intersection. Tech + creativity + values. In the attention economy, specificity is your most valuable asset."}] },
+  z:        { name:"THE SOCIAL ARCHITECT", tagline:"You build bridges between worlds that others don't even see yet.", emoji:"📱", loc:"New York, 2024", locSub:"Diversity, digital activism, and culture creation.", label:"Gen Z Mindset", strengths:["Inclusive","Authenticity-Driven","Socially Aware","Collaborative"], weaknesses:["Analysis Paralysis","Information Overload"], phases:[{num:"PHASE 01",t:"Clarify Your Cause",d:"Your passion for impact is powerful. Identify the single problem you want to solve and build your voice around it."},{num:"PHASE 02",t:"Monetize the Mission",d:"The New York 2024 playbook: align revenue with values. Communities and content that reflect genuine belief convert deeply."},{num:"PHASE 03",t:"Build the Coalition",d:"Your superpower is mobilization. Learn systems, delegation, and scale to turn your network into a movement."}] },
+  millennial:{ name:"THE BRIDGE BUILDER", tagline:"You carry the analog past in one hand and the digital future in the other.", emoji:"🌉", loc:"San Francisco, 2015", locSub:"Innovation culture, startup energy, work-life pursuit.", label:"Millennial Mindset", strengths:["Resourceful","Emotionally Intelligent","Ambitious","Analytical"], weaknesses:["Perfectionism","Burnout Risk"], phases:[{num:"PHASE 01",t:"Integrate, Don't Segregate",d:"Your strength is synthesis. Combine your deep experience with new-era tools like AI and no-code to amplify output."},{num:"PHASE 02",t:"Build Your Portfolio Career",d:"The SF mindset: multiple revenue streams. Your skills span generations — leverage that cross-cultural fluency."},{num:"PHASE 03",t:"Champion the Long Game",d:"You understand nuance. Deploy that into leadership, mentorship, and systems thinking. Longevity is your unfair advantage."}] },
+  x:        { name:"THE INDEPENDENT STOIC", tagline:"You built your own path before anyone told you the road existed.", emoji:"🏔️", loc:"London, 1998", locSub:"Self-reliant, pragmatic, quietly powerful.", label:"Gen X Mindset", strengths:["Self-Reliant","Logical","Resilient","Direct"], weaknesses:["Resistance to Change","Skepticism"], phases:[{num:"PHASE 01",t:"Embrace Selective Tech",d:"Your skepticism is healthy — your blind spots aren't. Identify two tools that compound your existing strengths."},{num:"PHASE 02",t:"Reframe Your Legacy",d:"The London 1998 ethos: earned expertise. Position your depth as a premium — consult, advise, and teach."},{num:"PHASE 03",t:"Lead Across Generations",d:"You've seen cycles others haven't. That perspective is rare. Step into rooms where wisdom is the missing ingredient."}] },
+  boomer:   { name:"THE LEGACY GUARDIAN", tagline:"You are the bedrock. Every generation builds on what you laid down.", emoji:"📜", loc:"Chicago, 1975", locSub:"Discipline, community, and lasting institutional trust.", label:"Boomer Mindset", strengths:["Disciplined","Principled","Community-Focused","Steadfast"], weaknesses:["Digital Resistance","Hierarchical Thinking"], phases:[{num:"PHASE 01",t:"Bridge the Digital Gap",d:"One platform mastered beats ten half-learned. Pick LinkedIn or YouTube and build your voice there intentionally."},{num:"PHASE 02",t:"Transfer the Knowledge",d:"The Chicago 1975 legacy: hard-won wisdom. Mentorship, memoir, or teaching — your experience is irreplaceable."},{num:"PHASE 03",t:"Define Your Third Act",d:"The generation that invented reinvention. What does contribution look like when you remove the approval of systems?"}] }
+};
+
+function toggleTheme(){document.documentElement.setAttribute('data-theme',document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
+function toggleLang(){lang=lang==='en'?'bn':'en';if(step<questions.length)render();}
+function startQuiz(){
+  const y=parseInt(document.getElementById('birth-year').value);
+  birthYear=(y>=1940&&y<=2015)?y:null;
+  show('screen-quiz');render();
+}
+function show(id){['screen-hero','screen-quiz','screen-loading','screen-results'].forEach(s=>document.getElementById(s).classList.add('hidden'));document.getElementById(id).classList.remove('hidden');}
+
+function render(){
+  const q=questions[step];
+  const n=step+1;
+  const pct=Math.round((step/questions.length)*100);
+  document.getElementById('q-counter').textContent=String(n).padStart(2,'0');
+  document.getElementById('q-pct').textContent=pct+'% Complete';
+  document.getElementById('q-cat').textContent=q.cat;
+  document.getElementById('q-num-label').textContent=`QUESTION ${String(n).padStart(2,'0')} / ${questions.length}`;
+  document.getElementById('q-text').textContent=q.q[lang];
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('btn-back').disabled=step===0;
+  document.getElementById('btn-next').disabled=answers[step]===undefined;
+
+  const wrap=document.getElementById('opts-wrap');
+  wrap.innerHTML='';
+  const letters=['A','B','C','D'];
+  q.opts.forEach((opt,i)=>{
+    const d=document.createElement('div');
+    d.className='opt'+(answers[step]===i?' selected':'');
+    d.innerHTML=`<div class="opt-indicator"></div><span class="opt-letter">${letters[i]}</span><span class="opt-text">${opt.t[lang]}</span>`;
+    d.onclick=()=>{answers[step]=i;render();};
+    wrap.appendChild(d);
+  });
 }
 
-function toggleTheme() {
-    const theme = document.documentElement.getAttribute('data-theme');
-    document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'light' : 'dark');
+function prevQ(){if(step>0){step--;render();}}
+function nextQ(){
+  if(answers[step]===undefined)return;
+  if(step<questions.length-1){step++;render();}
+  else analyze();
 }
 
-function toggleLang() {
-    currentLang = currentLang === 'en' ? 'bn' : 'en';
-    if(currentStep < questions.length) renderQuestion();
+function analyze(){
+  show('screen-loading');
+  const msgs=['Mapping neural patterns...','Cross-referencing archetypes...','Synthesizing your profile...'];
+  let m=0;
+  const iv=setInterval(()=>{document.getElementById('load-msg').textContent=msgs[++m%msgs.length].toUpperCase();},700);
+  setTimeout(()=>{clearInterval(iv);calculate();},2400);
 }
 
-function startQuiz() {
-    document.getElementById('screen-hero').classList.add('hidden');
-    document.getElementById('screen-quiz').classList.remove('hidden');
-    renderQuestion();
+function calculate(){
+  const scores={alpha:0,z:0,millennial:0,x:0,boomer:0};
+  answers.forEach((ai,qi)=>{const s=questions[qi].opts[ai].s;for(let k in s)scores[k]+=s[k];});
+  const winner=Object.keys(scores).reduce((a,b)=>scores[a]>scores[b]?a:b);
+  showResults(winner);
 }
 
-function renderQuestion() {
-    const q = questions[currentStep];
-    document.getElementById('q-text').innerText = q.q[currentLang];
-    document.getElementById('cat-tag').innerText = q.cat;
-    document.getElementById('prog-label').innerText = `${currentLang === 'en' ? 'Question' : 'প্রশ্ন'} ${currentStep + 1}/${questions.length}`;
-    
-    const pct = Math.round((currentStep / questions.length) * 100);
-    document.getElementById('prog-pct').innerText = pct + '%';
-    document.getElementById('prog-fill').style.width = pct + '%';
+function showResults(gen){
+  show('screen-results');
+  const d=genData[gen];
+  document.getElementById('res-gen-label').textContent=d.label;
+  document.getElementById('res-name').textContent=d.name;
+  document.getElementById('res-tagline').textContent=d.tagline;
+  document.getElementById('res-emoji').textContent=d.emoji;
+  document.getElementById('res-gen-type').textContent=gen.toUpperCase()+' MINDSET';
+  document.getElementById('res-loc').textContent=d.loc;
+  document.getElementById('res-loc-sub').textContent=d.locSub;
+  document.getElementById('res-loc-emoji').textContent=d.emoji;
+  document.getElementById('res-strengths').innerHTML=d.strengths.map(s=>`<span class="tag tag-s">✦ ${s}</span>`).join('');
+  document.getElementById('res-weaknesses').innerHTML=d.weaknesses.map(w=>`<span class="tag tag-w">▲ ${w}</span>`).join('');
+  document.getElementById('res-roadmap').innerHTML=d.phases.map(p=>`<div class="phase"><span class="phase-num">${p.num}</span><div class="phase-title">${p.t}</div><div class="phase-text">${p.d}</div></div>`).join('');
 
-    const container = document.getElementById('options-container');
-    container.innerHTML = '';
-    
-    q.options.forEach((opt, idx) => {
-        const div = document.createElement('div');
-        div.className = `opt ${answers[currentStep] === idx ? 'selected' : ''}`;
-        div.innerHTML = `<span>${opt.text[currentLang]}</span>`;
-        div.onclick = () => selectOption(idx);
-        container.appendChild(div);
-    });
-
-    document.getElementById('btn-prev').disabled = currentStep === 0;
+  // Actual generation from birth year
+  if(birthYear){
+    const actualGen = getActualGen(birthYear);
+    const card = document.getElementById('actual-gen-card');
+    card.style.display='flex';
+    document.getElementById('actual-gen-icon').textContent=actualGen.icon;
+    document.getElementById('actual-gen-name').textContent=actualGen.name;
+    document.getElementById('actual-gen-year').textContent=`Born ${birthYear} · ${actualGen.range}`;
+    const isMatch = actualGen.key === gen;
+    document.getElementById('gen-match-badge').innerHTML = isMatch
+      ? `<span class="gen-match-badge match">✓ Mindset Aligned</span>`
+      : `<span class="gen-match-badge mismatch">↗ Cross-Gen Soul</span>`;
+  }
 }
 
-function selectOption(idx) {
-    answers[currentStep] = idx;
-    renderQuestion();
-}
-
-function prevQ() {
-    if(currentStep > 0) {
-        currentStep--;
-        renderQuestion();
-    }
-}
-
-function nextQ() {
-    if(answers[currentStep] === undefined) return;
-    if(currentStep < questions.length - 1) {
-        currentStep++;
-        renderQuestion();
-    } else {
-        processResults();
-    }
-}
-
-function processResults() {
-    document.getElementById('screen-quiz').classList.add('hidden');
-    document.getElementById('screen-loading').classList.remove('hidden');
-
-    setTimeout(() => {
-        const finalScores = { alpha: 0, z: 0, millennial: 0, x: 0, boomer: 0 };
-        answers.forEach((ansIdx, qIdx) => {
-            const scores = questions[qIdx].options[ansIdx].scores;
-            for(let key in scores) finalScores[key] += scores[key];
-        });
-
-        const winner = Object.keys(finalScores).reduce((a, b) => finalScores[a] > finalScores[b] ? a : b);
-        displayResults(winner);
-    }, 2000);
-}
-
-function displayResults(gen) {
-    document.getElementById('screen-loading').classList.add('hidden');
-    document.getElementById('screen-results').classList.remove('hidden');
-
-    const data = {
-        alpha: { name: "The Digital Pioneer", emoji: "🤖", loc: "Seoul 2025", tags: ["Fast-Learner", "Adaptive"], weak: ["Impatience"] },
-        z: { name: "The Social Architect", emoji: "📱", loc: "New York 2024", tags: ["Inclusive", "Woke"], weak: ["Information Overload"] },
-        millennial: { name: "The Bridge Builder", emoji: "🌉", loc: "San Francisco 2012", tags: ["Resourceful", "Ambitious"], weak: ["Burnout"] },
-        x: { name: "The Independent Stoic", emoji: "🏔️", loc: "London 1995", tags: ["Self-Reliant", "Logical"], weak: ["Resistant to change"] },
-        boomer: { name: "The Legacy Guardian", emoji: "📜", loc: "DC 1980", tags: ["Disciplined", "Focused"], weak: ["Tech-Gap"] }
-    };
-
-    const res = data[gen];
-    document.getElementById('res-name').innerText = res.name;
-    document.getElementById('res-gen-type').innerText = gen.toUpperCase() + " Mindset";
-    document.getElementById('res-gen-emoji').innerText = res.emoji;
-    document.getElementById('res-loc-type').innerText = res.loc;
-    
-    const sBox = document.getElementById('res-strengths');
-    sBox.innerHTML = res.tags.map(t => `<span class="tag tag-strength">${t}</span>`).join('');
-    
-    const wBox = document.getElementById('res-weaknesses');
-    wBox.innerHTML = res.weak.map(t => `<span class="tag tag-weakness">${t}</span>`).join('');
-
-    const roadmap = document.getElementById('res-roadmap');
-    roadmap.innerHTML = `
-        <div class="roadmap-phase">
-            <h4>Phase 1: Foundation (Current)</h4>
-            <p>Utilize your native ${gen} instincts to master prompt engineering and AI integration.</p>
-        </div>
-        <div class="roadmap-phase">
-            <h4>Phase 2: Global Reach</h4>
-            <p>Target networks in ${res.loc.split(' ')[0]} to align with your psychological lifestyle match.</p>
-        </div>
-    `;
+function getActualGen(year){
+  if(year<=1945)  return {key:'boomer',name:'Silent Generation',range:'1928–1945',icon:'🕯️'};
+  if(year<=1964)  return {key:'boomer',name:'Baby Boomer',range:'1946–1964',icon:'📜'};
+  if(year<=1980)  return {key:'x',name:'Generation X',range:'1965–1980',icon:'🏔️'};
+  if(year<=1996)  return {key:'millennial',name:'Millennial',range:'1981–1996',icon:'🌉'};
+  if(year<=2012)  return {key:'z',name:'Generation Z',range:'1997–2012',icon:'📱'};
+  return           {key:'alpha',name:'Generation Alpha',range:'2013–present',icon:'🤖'};
 }
 </script>
 </body>
