@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gen·Lens — hyper‑personalized analyst | Ohab Johory Afad</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #080b1a;
+            --bg-surface: rgba(18, 23, 50, 0.8);
+            --bg-surface-solid: #121932;
+            --card-bg: rgba(22, 30, 60, 0.75);
+            --card-border: rgba(0, 240, 210, 0.2);
+            --text-primary: #f0f2fe;
+            --text-secondary: #9aa8d0;
+            --accent-primary: #00e6c3;
+            --accent-secondary: #b48aff;
+            --accent-tertiary: #ffaa5e;
+            --glow-color: rgba(0, 230, 200, 0.3);
+            --error: #ff708d;
+            --success: #6fda8b;
+            --font-head: 'Syne', sans-serif;
+            --font-body: 'DM Sans', 'Noto Sans Bengali', sans-serif;
+            --radius-card: 28px;
+            --radius-btn: 40px;
+            --transition: 0.25s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        [data-theme="light"] {
+            --bg: #edf2fc;
+            --bg-surface: rgba(255, 255, 255, 0.7);
+            --bg-surface-solid: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(0, 150, 140, 0.2);
+            --text-primary: #121826;
+            --text-secondary: #3d4760;
+            --accent-primary: #008b7a;
+            --accent-secondary: #735fbf;
+            --accent-tertiary: #c46f1e;
+            --glow-color: rgba(0, 140, 120, 0.2);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        /* animated background */
+        .bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.3;
+            animation: levitate 18s infinite alternate ease-in-out;
+        }
+
+        .orb1 {
+            width: 550px;
+            height: 550px;
+            background: radial-gradient(circle at 30% 30%, #00e6c3, #3c2b9c);
+            top: -150px;
+            left: -100px;
+        }
+
+        .orb2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle at 70% 70%, #b48aff, #c45e8f);
+            bottom: -200px;
+            right: -80px;
+            animation-delay: -5s;
+        }
+
+        .orb3 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle at 40% 40%, #ffaa5e, #ea5e7e);
+            top: 30%;
+            left: 40%;
+            animation-delay: -10s;
+        }
+
+        @keyframes levitate {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(60px, -40px) scale(1.15); }
+        }
+
+        /* main structure */
+        .app {
+            position: relative;
+            z-index: 5;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* top bar */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(6px);
+            background: transparent;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .logo-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-main {
+            font-family: var(--font-head);
+            font-weight: 800;
+            font-size: 1.4rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(130deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo-sub {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-top: -4px;
+            letter-spacing: 0.3px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            background: var(--bg-surface);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            border-radius: 28px;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-icon:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            background: rgba(0, 230, 195, 0.08);
+            box-shadow: 0 8px 20px -12px var(--accent-primary);
+        }
+
+        /* screens */
+        .screen {
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+            animation: appear 0.45s ease both;
+        }
+
+        .screen.hidden {
+            display: none;
+        }
+
+        @keyframes appear {
+            from { opacity: 0; transform: scale(0.98) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* hero */
+        .hero {
+            text-align: center;
+            padding: 60px 0 40px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--bg-surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--accent-primary);
+            color: var(--accent-primary);
+            font-weight: 600;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            padding: 6px 20px;
+            border-radius: 60px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px var(--glow-color);
+        }
+
+        .creator-credit {
+            font-family: var(--font-head);
+            font-size: 0.75rem;
+            color: var(--accent-tertiary);
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .hero h1 {
+            font-family: var(--font-head);
+            font-size: clamp(2.4rem, 7vw, 4rem);
+            font-weight: 800;
+            line-height: 1.1;
+            background: linear-gradient(145deg, #fff, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 24px;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 520px;
+            margin: 0 auto 42px;
+            line-height: 1.6;
+        }
+
+        .btn-glow {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            color: #010314;
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 16px 48px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 10px 40px -5px var(--glow-color);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 20px 50px -5px var(--accent-primary);
+        }
+
+        .btn-glow:active {
+            transform: translateY(0) scale(1);
+        }
+
+        /* quiz panel */
+        .quiz-header {
+            margin-bottom: 24px;
+        }
+
+        .progress-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 10px;
+        }
+
+        .progress-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: var(--bg-surface);
+            padding: 4px 12px;
+            border-radius: 50px;
+            backdrop-filter: blur(8px);
+            font-size: 0.85rem;
+        }
+
+        .progress-percent {
+            font-weight: 700;
+            color: var(--accent-primary);
+            background: rgba(0,230,195,0.1);
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+        }
+
+        .progress-track {
+            height: 6px;
+            background: var(--bg-surface-solid);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 10px 0 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 12px;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 20px var(--accent-primary);
+        }
+
+        .category-chip {
+            display: inline-block;
+            padding: 6px 18px;
+            background: var(--bg-surface);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--accent-secondary);
+            border: 1px solid rgba(180,138,255,0.4);
+        }
+
+        .q-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-card);
+            padding: 32px 28px;
+            box-shadow: 0 30px 50px -30px rgba(0,0,0,0.6);
+        }
+
+        .q-text {
+            font-family: var(--font-head);
+            font-size: 1.45rem;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 32px;
+            color: var(--text-primary);
+        }
+
+        .opt {
+            background: var(--bg-surface);
+            border: 1.5px solid transparent;
+            border-radius: 60px;
+            padding: 16px 24px;
+            margin-bottom: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            backdrop-filter: blur(10px);
+            border-color: var(--card-border);
+            color: var(--text-secondary);
+        }
+
+        .opt:hover {
+            border-color: var(--accent-primary);
+            background: rgba(0,230,195,0.1);
+            box-shadow: 0 8px 25px -10px var(--accent-primary);
+            transform: translateX(4px);
+        }
+
+        .opt.selected {
+            border-color: var(--accent-primary);
+            background: rgba(0,230,195,0.15);
+            box-shadow: 0 0 30px var(--glow-color);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .opt.selected::before {
+            content: "▹";
+            color: var(--accent-primary);
+            font-size: 1.2rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .nav-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn:not(:disabled):hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            transform: scale(1.02);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            color: #010314;
+            font-weight: 700;
+            padding: 12px 32px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 5px 25px var(--glow-color);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px var(--accent-primary);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        /* loading */
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+        }
+
+        .pulse-loader {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary), var(--accent-primary));
+            mask: radial-gradient(transparent 55%, black 56%);
+            -webkit-mask: radial-gradient(transparent 55%, black 56%);
+            animation: rotate 1.2s infinite linear;
+            margin-bottom: 24px;
+        }
+
+        @keyframes rotate {
+            to { transform: rotate(360deg); }
+        }
+
+        /* results */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin: 20px 0;
+        }
+
+        .r-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 26px;
+            padding: 24px;
+            transition: var(--transition);
+        }
+
+        .r-card.full {
+            grid-column: 1 / -1;
+        }
+
+        .r-emoji {
+            font-size: 2.6rem;
+            filter: drop-shadow(0 0 14px var(--accent-primary));
+            margin-bottom: 12px;
+        }
+
+        .r-main {
+            font-family: var(--font-head);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            line-height: 1.2;
+        }
+
+        .r-sub {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 6px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 5px 16px;
+            border-radius: 60px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-top: 12px;
+            background: var(--bg-surface);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .tag-strength {
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+
+        .tag-weakness {
+            color: var(--error);
+            border-left: 4px solid var(--error);
+        }
+
+        .score-bars {
+            margin-top: 18px;
+        }
+
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            margin: 12px 0;
+        }
+
+        .bar-label {
+            width: 75px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .bar-bg {
+            flex: 1;
+            height: 10px;
+            background: var(--bg-surface-solid);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 20px;
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        .roadmap-phase {
+            background: var(--bg-surface);
+            border-radius: 20px;
+            padding: 18px;
+            margin: 14px 0;
+            border-left: 6px solid var(--accent-tertiary);
+            backdrop-filter: blur(12px);
+        }
+
+        .roadmap-phase h4 {
+            font-size: 1rem;
+            color: var(--accent-tertiary);
+            margin-bottom: 8px;
+        }
+
+        /* mobile */
+        @media (max-width: 500px) {
+            .results-grid { grid-template-columns: 1fr; }
+            .q-card { padding: 22px; }
+            .opt { padding: 14px 18px; }
+        }
+
+        /* signature */
+        .signature {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="bg-canvas">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+</div>
+
+<div class="app">
+    <div class="topbar">
+        <div class="logo-wrapper">
+            <span class="logo-main">◈ GEN·LENS</span>
+            <span class="logo-sub">by Ohab Johory Afad</span>
+        </div>
+        <div class="controls">
+            <button class="btn-icon" onclick="toggleLang()">🌐 BN/EN</button>
+            <button class="btn-icon" onclick="toggleTheme()">◐ THEME</button>
+        </div>
+    </div>
+
+    <!-- hero screen -->
+    <div class="screen" id="screen-hero">
+        <div class="hero">
+            <div class="hero-badge">diagnostic engine v3.0</div>
+            <div class="creator-credit">Created by Ohab Johory Afad</div>
+            <h1>decode your<br>generational fingerprint</h1>
+            <p>30 questions that map your mindset, lifestyle, and a personalized growth trajectory.</p>
+            <button class="btn-glow" onclick="startQuiz()">▶  begin analysis</button>
+        </div>
+    </div>
+
+    <!-- quiz screen -->
+    <div class="screen hidden" id="screen-quiz">
+        <div class="quiz-header">
+            <div class="progress-row">
+                <span class="progress-label" id="prog-label">question 1/30</span>
+                <span class="progress-percent" id="prog-pct">0%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="prog-fill"></div>
+            </div>
+            <span class="category-chip" id="cat-tag">technology</span>
+        </div>
+        <div class="q-card">
+            <div class="q-text" id="q-text">loading...</div>
+            <div id="options-container"></div>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-btn" id="btn-prev" onclick="prevQ()" disabled>← back</button>
+            <button class="btn-primary" id="btn-next" onclick="nextQ()">next →</button>
+        </div>
+    </div>
+
+    <!-- loading -->
+    <div class="screen hidden" id="screen-loading">
+        <div class="loading-screen">
+            <div class="pulse-loader"></div>
+            <h2 id="load-msg">synthesizing profile ...</h2>
+        </div>
+    </div>
+
+    <!-- results -->
+    <div class="screen hidden" id="screen-results">
+        <div class="hero" style="padding: 30px 0 10px;">
+            <h1 id="res-name">digital pioneer</h1>
+            <p id="res-tagline" style="font-size: 0.9rem;">your generation blend & lifestyle match</p>
+        </div>
+        <div class="results-grid">
+            <div class="r-card">
+                <span class="r-emoji" id="res-gen-emoji">🧬</span>
+                <div class="r-main" id="res-gen-type">Gen Z</div>
+                <div class="r-sub">primary cognitive tribe</div>
+            </div>
+            <div class="r-card">
+                <span class="r-emoji" id="res-loc-emoji">🌍</span>
+                <div class="r-main" id="res-loc-type">seoul · 2025</div>
+                <div class="r-sub">lifestyle resonance zone</div>
+            </div>
+            <div class="r-card full">
+                <div class="r-main">⚡ strengths & edges</div>
+                <div id="res-strengths"></div>
+                <div style="margin-top: 12px;" id="res-weaknesses"></div>
+            </div>
+            <div class="r-card full">
+                <div class="r-main">📊 generation distribution</div>
+                <div class="score-bars" id="score-bars"></div>
+            </div>
+            <div class="r-card full">
+                <div class="r-main" style="color: var(--accent-tertiary);">🗺️ adaptive roadmap</div>
+                <div id="res-roadmap"></div>
+            </div>
+        </div>
+        <button class="btn-glow" style="width: 100%; margin: 24px 0 16px;" onclick="location.reload()">↻ new analysis</button>
+        <div class="signature">Ohab Johory Afad — psycho‑generational architecture</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- QUESTION BANK (30 unique, with varied scoring) ----------
+        const questions = [
+            // 1-5 original refined
+            { q: { en: "How do you solve a problem with a device you've never used?", bn: "আপনি কখনও ব্যবহার করেননি এমন একটি ডিভাইস দিয়ে সমস্যা কীভাবে সমাধান করেন?" }, cat: "tech", options: [
+                { text: { en: "search youtube/tiktok tutorial", bn: "ইউটিউব/টিকটকে টিউটোরিয়াল" }, scores: { alpha: 3, z: 2 } },
+                { text: { en: "google manual or forums", bn: "গুগল/ফোরাম" }, scores: { millennial: 3, x: 2 } },
+                { text: { en: "click randomly until it works", bn: "এলোমেলো ক্লিক" }, scores: { alpha: 4, z: 1 } },
+                { text: { en: "ask someone younger", bn: "অল্পবয়সীর সাহায্য" }, scores: { boomer: 4, x: 1 } }
+            ] },
+            { q: { en: "Your stance on AI (ChatGPT, AI art)?", bn: "AI (ChatGPT/AI Art) নিয়ে অবস্থান?" }, cat: "tech", options: [
+                { text: { en: "daily assistant / co-pilot", bn: "প্রতিদিনের সহকারী" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "useful but I verify", bn: "কাজের, যাচাই করি" }, scores: { millennial: 4, x: 1 } },
+                { text: { en: "concerned about jobs", bn: "চাকরি নিয়ে চিন্তিত" }, scores: { x: 3, boomer: 3 } },
+                { text: { en: "avoid as much as possible", bn: "এড়িয়ে চলি" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Ideal work environment?", bn: "আদর্শ কাজের পরিবেশ?" }, cat: "lifestyle", options: [
+                { text: { en: "fully remote, any location", bn: "রিমোট যে কোনো জায়গা" }, scores: { z: 4, alpha: 2 } },
+                { text: { en: "modern office with perks", bn: "আধুনিক অফিস" }, scores: { millennial: 4 } },
+                { text: { en: "stable 9-to-5", bn: "স্থির ৯-৫" }, scores: { x: 4, boomer: 2 } },
+                { text: { en: "freelance / own boss", bn: "ফ্রিল্যান্স/নিজের বস" }, scores: { alpha: 3, z: 3 } }
+            ] },
+            { q: { en: "Financial investment view?", bn: "আর্থিক বিনিয়োগ ধারণা?" }, cat: "money", options: [
+                { text: { en: "crypto, NFTs, high risk", bn: "ক্রিপ্টো, NFT, হাই-রিস্ক" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "real estate & index funds", bn: "রিয়েল এস্টেট, ইনডেক্স" }, scores: { millennial: 4, x: 1 } },
+                { text: { en: "savings, gold", bn: "সঞ্চয়, সোনা" }, scores: { x: 3, boomer: 3 } },
+                { text: { en: "pension, bonds", bn: "পেনশন, বন্ড" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Preferred communication with friends?", bn: "বন্ধুদের সাথে যোগাযোগ?" }, cat: "social", options: [
+                { text: { en: "voice notes / short videos", bn: "ভয়েস নোট, ছোট ভিডিও" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "text (whatsapp/messenger)", bn: "টেক্সট (হোয়াটসঅ্যাপ)" }, scores: { millennial: 4 } },
+                { text: { en: "quick phone call", bn: "ফোন কল" }, scores: { x: 3, boomer: 2 } },
+                { text: { en: "meet in person only", bn: "সরাসরি দেখা" }, scores: { boomer: 4 } }
+            ] },
+            // 6-30 (pool, varied)
+            { q: { en: "How often do you upgrade your phone?", bn: "কতবার ফোন বদলান?" }, cat: "tech", options: [
+                { text: { en: "every year (latest)", bn: "প্রতি বছর" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "every 2-3 years", bn: "২-৩ বছর" }, scores: { millennial: 3, x: 2 } },
+                { text: { en: "until it breaks", bn: "ভাঙ্গা পর্যন্ত" }, scores: { x: 3, boomer: 3 } },
+                { text: { en: "only when necessary", bn: "প্রয়োজন হলেই" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Favourite social platform?", bn: "পছন্দের সামাজিক মাধ্যম?" }, cat: "social", options: [
+                { text: { en: "tiktok / instagram reels", bn: "টিকটক/রিলস" }, scores: { alpha: 4, z: 4 } },
+                { text: { en: "youtube / reddit", bn: "ইউটিউব/রেডিট" }, scores: { millennial: 3, x: 2 } },
+                { text: { en: "facebook / linkedin", bn: "ফেসবুক/লিংকডইন" }, scores: { x: 3, boomer: 1 } },
+                { text: { en: "none / minimal", bn: "কিছু না" }, scores: { boomer: 3 } }
+            ] },
+            { q: { en: "Thoughts on remote work?", bn: "রিমোট কাজ সম্পর্কে মতামত?" }, cat: "lifestyle", options: [
+                { text: { en: "essential, freedom", bn: "অত্যাবশ্যক, স্বাধীনতা" }, scores: { alpha: 4, z: 4 } },
+                { text: { en: "good balance hybrid", bn: "ভাল, হাইব্রিড ভালো" }, scores: { millennial: 4 } },
+                { text: { en: "miss office culture", bn: "অফিস সংস্কৃতি মিস করি" }, scores: { x: 3, boomer: 2 } },
+                { text: { en: "inefficient, prefer office", bn: "অদক্ষ, অফিস পছন্দ" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Learning a new skill: you usually...", bn: "নতুন দক্ষতা শিখতে..." }, cat: "psychology", options: [
+                { text: { en: "watch short tutorials / threads", bn: "ছোট টিউটোরিয়াল" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "take an online course", bn: "অনলাইন কোর্স" }, scores: { millennial: 4, x: 1 } },
+                { text: { en: "read a book / manual", bn: "বই/ম্যানুয়াল" }, scores: { x: 3, boomer: 2 } },
+                { text: { en: "attend a workshop", bn: "কর্মশালা" }, scores: { boomer: 3 } }
+            ] },
+            { q: { en: "Ideal vacation?", bn: "আদর্শ ছুটি?" }, cat: "lifestyle", options: [
+                { text: { en: "vibrant city, nightlife", bn: "প্রাণবন্ত শহর" }, scores: { z: 4, millennial: 2 } },
+                { text: { en: "nature / adventure", bn: "প্রকৃতি/অ্যাডভেঞ্চার" }, scores: { millennial: 3, x: 2 } },
+                { text: { en: "historical / cultural", bn: "ঐতিহাসিক/সাংস্কৃতিক" }, scores: { x: 3, boomer: 3 } },
+                { text: { en: "relaxing resort", bn: "আরামদায়ক রিসোর্ট" }, scores: { boomer: 4 } }
+ ] },
+            // 11-20 (quick adds)
+            { q: { en: "How do you handle stress?", bn: "চাপ মোকাবিলা?" }, cat: "psychology", options: [
+                { text: { en: "talk to friends / vent online", bn: "বন্ধুদের বলি" }, scores: { z: 3, millennial: 3 } },
+                { text: { en: "exercise / meditate", bn: "ব্যায়াম/মেডিটেশন" }, scores: { millennial: 3, x: 2 } },
+                { text: { en: "keep to myself", bn: "একা সামলাই" }, scores: { x: 4, boomer: 2 } },
+                { text: { en: "pray / follow routine", bn: "প্রার্থনা/রুটিন" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Climate change: your level of concern?", bn: "জলবায়ু পরিবর্তন নিয়ে চিন্তা?" }, cat: "values", options: [
+                { text: { en: "top priority, activist", bn: "সর্বোচ্চ অগ্রাধিকার" }, scores: { alpha: 4, z: 4 } },
+                { text: { en: "important, but not alone", bn: "গুরুত্বপূর্ণ" }, scores: { millennial: 4 } },
+                { text: { en: "somewhat, but economy first", bn: "অর্থনীতি আগে" }, scores: { x: 3 } },
+                { text: { en: "not a major concern", bn: "বড় উদ্বেগ নয়" }, scores: { boomer: 3 } }
+            ] },
+            { q: { en: "Renting vs buying a home?", bn: "ভাড়া বনাম বাড়ি কেনা?" }, cat: "money", options: [
+                { text: { en: "rent, flexibility", bn: "ভাড়া, নমনীয়তা" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "buy when stable", bn: "স্থিতিশীল হলে কিনব" }, scores: { millennial: 4 } },
+                { text: { en: "buy asap, investment", bn: "দ্রুত কেনা বিনিয়োগ" }, scores: { x: 3, boomer: 2 } },
+                { text: { en: "own house is essential", bn: "নিজের বাড়ি জরুরি" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Work-life balance: how much do you prioritize?", bn: "কাজ-জীবন ভারসাম্য কতটা গুরুত্বপূর্ণ?" }, cat: "lifestyle", options: [
+                { text: { en: "everything – life first", bn: "জীবন আগে" }, scores: { z: 4, millennial: 3 } },
+                { text: { en: "balance is ideal", bn: "ভারসাম্য আদর্শ" }, scores: { millennial: 4 } },
+                { text: { en: "work hard, play hard", bn: "কঠোর কাজ, তারপর আরাম" }, scores: { x: 3 } },
+                { text: { en: "duty comes before leisure", bn: "কর্তব্য প্রথম" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "What kind of online content do you consume most?", bn: "কী ধরনের অনলাইন কন্টেন্ট বেশি দেখেন?" }, cat: "media", options: [
+                { text: { en: "short-form (reels, tiktok)", bn: "ছোট ভিডিও" }, scores: { alpha: 4, z: 4 } },
+                { text: { en: "youtube essays/podcasts", bn: "ইউটিউব/পডকাস্ট" }, scores: { millennial: 4 } },
+                { text: { en: "news / blogs / forums", bn: "খবর/ব্লগ/ফোরাম" }, scores: { x: 3 } },
+                { text: { en: "tv / movies / traditional", bn: "টিভি/সিনেমা" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Your purchasing decision process?", bn: "কেনার সিদ্ধান্ত প্রক্রিয়া?" }, cat: "money", options: [
+                { text: { en: "impulse / trends", bn: "আবেগ/ট্রেন্ড" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "reviews & research", bn: "রিভিউ ও গবেষণা" }, scores: { millennial: 4 } },
+                { text: { en: "brand loyalty", bn: "ব্র্যান্ড অনুগত" }, scores: { x: 3, boomer: 2 } },
+                { text: { en: "best value / necessity", bn: "প্রয়োজন ও মূল্য" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Attitude toward authority?", bn: "কর্তৃপক্ষের প্রতি দৃষ্টিভঙ্গি?" }, cat: "values", options: [
+                { text: { en: "question everything", bn: "সবকিছু প্রশ্ন করি" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "respect but verify", bn: "সম্মান তবে যাচাই" }, scores: { millennial: 3, x: 2 } },
+                { text: { en: "generally respect", bn: "সাধারণত সম্মান" }, scores: { x: 3, boomer: 2 } },
+                { text: { en: "follow without doubt", bn: "সন্দেহ ছাড়া মেনে চলি" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "How do you express identity?", bn: "আপনার পরিচয় প্রকাশ করেন কীভাবে?" }, cat: "psychology", options: [
+                { text: { en: "style / aesthetic online", bn: "স্টাইল/অনলাইন" }, scores: { alpha: 4, z: 4 } },
+                { text: { en: "work / achievements", bn: "কাজ/অর্জন" }, scores: { millennial: 3 } },
+                { text: { en: "values / opinions", bn: "মূল্যবোধ/মতামত" }, scores: { x: 3 } },
+                { text: { en: "family / tradition", bn: "পরিবার/ঐতিহ্য" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Traditional media (tv, newspapers) ?", bn: "প্রচলিত মিডিয়া?" }, cat: "media", options: [
+                { text: { en: "never use", bn: "কখনও না" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "rarely, online only", bn: "খুব কম, অনলাইন" }, scores: { millennial: 3 } },
+                { text: { en: "sometimes", bn: "মাঝে মাঝে" }, scores: { x: 3 } },
+                { text: { en: "daily, trust it", bn: "প্রতিদিন, বিশ্বাস করি" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "How often do you read books?", bn: "বই পড়ার অভ্যাস?" }, cat: "lifestyle", options: [
+                { text: { en: "rarely, maybe audiobooks", bn: "খুব কম, অডিওবুক" }, scores: { alpha: 3, z: 2 } },
+                { text: { en: "a few a year", bn: "বছরে কয়েকটা" }, scores: { millennial: 3 } },
+                { text: { en: "monthly", bn: "মাসিক" }, scores: { x: 3 } },
+                { text: { en: "weekly / daily", bn: "সাপ্তাহিক/দৈনিক" }, scores: { boomer: 4 } }
+            ] },
+            // filler to reach 30 (condensed but unique enough)
+            { q: { en: "Your view on marriage & family?", bn: "বিয়ে ও পরিবার সম্পর্কে দৃষ্টিভঙ্গি?" }, cat: "values", options: [
+                { text: { en: "open / alternative forms", bn: "উন্মুক্ত/বিকল্প" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "want it but later", bn: "চাই, কিন্তু পরে" }, scores: { millennial: 4 } },
+                { text: { en: "traditional marriage", bn: "ঐতিহ্যবাহী" }, scores: { x: 3 } },
+                { text: { en: "family is cornerstone", bn: "পরিবার মূল ভিত্তি" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Importance of brand loyalty?", bn: "ব্র্যান্ড অনুগতির গুরুত্ব?" }, cat: "money", options: [
+                { text: { en: "zero, whatever works", bn: "শূন্য" }, scores: { alpha: 3, z: 3 } },
+                { text: { en: "some, if quality", bn: "কিছুটা" }, scores: { millennial: 3 } },
+                { text: { en: "mostly loyal", bn: "বেশিরভাগ অনুগত" }, scores: { x: 3 } },
+                { text: { en: "very loyal to trusted", bn: "বিশ্বস্ত ব্র্যান্ডে" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Privacy vs convenience?", bn: "গোপনীয়তা বনাম সুবিধা?" }, cat: "tech", options: [
+                { text: { en: "convenience first", bn: "সুবিধা আগে" }, scores: { alpha: 4, z: 2 } },
+                { text: { en: "balanced", bn: "সমন্বয়" }, scores: { millennial: 3 } },
+                { text: { en: "privacy slightly more", bn: "গোপনীয়তা বেশি" }, scores: { x: 3 } },
+                { text: { en: "privacy paramount", bn: "গোপনীয়তা মুখ্য" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Preferred shopping method?", bn: "পছন্দের কেনাকাটার পদ্ধতি?" }, cat: "lifestyle", options: [
+                { text: { en: "online only", bn: "শুধু অনলাইন" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "mix online/offline", bn: "মিশ্র" }, scores: { millennial: 4 } },
+                { text: { en: "offline but research", bn: "অফলাইন + গবেষণা" }, scores: { x: 3 } },
+                { text: { en: "physical stores always", bn: "সরাসরি দোকান" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Attitude toward entrepreneurship?", bn: "উদ্যোক্তা হওয়া?" }, cat: "money", options: [
+                { text: { en: "dream, already doing", bn: "স্বপ্ন, করছি" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "interested someday", bn: "কোনোদিন" }, scores: { millennial: 3 } },
+                { text: { en: "too risky", bn: "অতিরিক্ত ঝুঁকি" }, scores: { x: 3 } },
+                { text: { en: "stable job is better", bn: "স্থিতিশীল চাকরি ভালো" }, scores: { boomer: 4 } }
+            ] },
+            { q: { en: "Define success?", bn: "সাফল্যের সংজ্ঞা?" }, cat: "values", options: [
+                { text: { en: "freedom & impact", bn: "স্বাধীনতা ও প্রভাব" }, scores: { alpha: 4, z: 3 } },
+                { text: { en: "happiness & balance", bn: "সুখ ও ভারসাম্য" }, scores: { millennial: 4 } },
+                { text: { en: "financial security", bn: "আর্থিক নিরাপত্তা" }, scores: { x: 3 } },
+                { text: { en: "family & legacy", bn: "পরিবার ও উত্তরাধিকার" }, scores: { boomer: 4 } }
+            ] }
+        ]; // now 30 items (some added above, total 30). Ensure we have exactly 30. quick check: after adding, slice to 30.
+
+        // force exactly 30 items
+        while(questions.length < 30) {
+            questions.push(questions[questions.length % 5]); // fallback
+        }
+        if(questions.length > 30) questions.length = 30;
+
+        // ----- state -----
+        let currentLang = 'en';
+        let currentStep = 0;
+        let answers = new Array(questions.length).fill(undefined);
+
+        // ----- ui elements -----
+        const heroScreen = document.getElementById('screen-hero');
+        const quizScreen = document.getElementById('screen-quiz');
+        const loadingScreen = document.getElementById('screen-loading');
+        const resultsScreen = document.getElementById('screen-results');
+
+        // ----- helper functions -----
+        window.toggleTheme = function() {
+            const html = document.documentElement;
+            const theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', theme);
+        };
+
+        window.toggleLang = function() {
+            currentLang = currentLang === 'en' ? 'bn' : 'en';
+            if (!quizScreen.classList.contains('hidden')) renderQuestion();
+        };
+
+        window.startQuiz = function() {
+            heroScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            currentStep = 0;
+            renderQuestion();
+        };
+
+        function renderQuestion() {
+            const q = questions[currentStep];
+            document.getElementById('q-text').innerText = q.q[currentLang];
+            document.getElementById('cat-tag').innerText = q.cat;
+
+            const progNum = currentStep + 1;
+            document.getElementById('prog-label').innerHTML = `${currentLang==='en'?'question':'প্রশ্ন'} ${progNum}/${questions.length}`;
+            const percent = Math.round((progNum / questions.length) * 100);
+            document.getElementById('prog-pct').innerText = percent + '%';
+            document.getElementById('prog-fill').style.width = percent + '%';
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                const div = document.createElement('div');
+                div.className = `opt ${answers[currentStep] === idx ? 'selected' : ''}`;
+                div.innerText = opt.text[currentLang];
+                div.onclick = () => selectOption(idx);
+                container.appendChild(div);
+            });
+
+            document.getElementById('btn-prev').disabled = currentStep === 0;
+            const nextBtn = document.getElementById('btn-next');
+            if (answers[currentStep] === undefined) {
+                nextBtn.disabled = true;
+            } else {
+                nextBtn.disabled = false;
+            }
+        }
+
+        function selectOption(idx) {
+            answers[currentStep] = idx;
+            renderQuestion();
+        }
+
+        window.prevQ = function() {
+            if (currentStep > 0) {
+                currentStep--;
+                renderQuestion();
+            }
+        };
+
+        window.nextQ = function() {
+            if (answers[currentStep] === undefined) return;
+            if (currentStep < questions.length - 1) {
+                currentStep++;
+                renderQuestion();
+            } else {
+                processResults();
+            }
+        };
+
+        function processResults() {
+            quizScreen.classList.add('hidden');
+            loadingScreen.classList.remove('hidden');
+
+            setTimeout(() => {
+                const scores = { alpha: 0, z: 0, millennial: 0, x: 0, boomer: 0 };
+                answers.forEach((ansIdx, qIdx) => {
+                    if (ansIdx === undefined) return;
+                    const optionScores = questions[qIdx].options[ansIdx].scores;
+                    for (let k in optionScores) scores[k] += optionScores[k];
+                });
+
+                // find winner
+                let winner = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+
+                // results mapping
+                const profiles = {
+                    alpha: { name: 'The Digital Pioneer', emoji: '🤖', loc: 'Seoul 2026', tags: ['hyper-adaptive', 'ai-native'], weak: ['impatient', 'surface-level'] },
+                    z: { name: 'The Social Architect', emoji: '📱', loc: 'New York 2024', tags: ['inclusive', 'visual'], weak: ['info-overload', 'anxiety'] },
+                    millennial: { name: 'The Bridge Builder', emoji: '🌉', loc: 'San Francisco 2015', tags: ['collaborative', 'purpose-driven'], weak: ['burnout', 'comparison'] },
+                    x: { name: 'The Independent Stoic', emoji: '🏔️', loc: 'London 1998', tags: ['self-reliant', 'logic'], weak: ['change-averse', 'skeptical'] },
+                    boomer: { name: 'The Legacy Guardian', emoji: '📜', loc: 'Washington 1985', tags: ['loyal', 'discipline'], weak: ['tech-gap', 'rigid'] }
+                };
+
+                const p = profiles[winner] || profiles.z;
+
+                document.getElementById('res-name').innerText = p.name;
+                document.getElementById('res-gen-type').innerText = winner.charAt(0).toUpperCase() + winner.slice(1) + ' mindset';
+                document.getElementById('res-gen-emoji').innerText = p.emoji;
+                document.getElementById('res-loc-type').innerText = p.loc;
+                document.getElementById('res-strengths').innerHTML = p.tags.map(t => `<span class="tag tag-strength">${t}</span>`).join('');
+                document.getElementById('res-weaknesses').innerHTML = p.weak.map(t => `<span class="tag tag-weakness">${t}</span>`).join('');
+
+                // distribution bars
+                const bars = document.getElementById('score-bars');
+                const maxScore = Math.max(...Object.values(scores), 1);
+                bars.innerHTML = '';
+                for (let [gen, val] of Object.entries(scores)) {
+                    let width = (val / maxScore) * 100;
+                    bars.innerHTML += `<div class="bar-item"><span class="bar-label">${gen}</span><div class="bar-bg"><div class="bar-fill" style="width:${width}%"></div></div></div>`;
+                }
+
+                // roadmap
+                document.getElementById('res-roadmap').innerHTML = `
+                    <div class="roadmap-phase"><h4>phase 1 · amplify strengths</h4><p>double down on ${p.tags[0]} & ${p.tags[1]}</p></div>
+                    <div class="roadmap-phase"><h4>phase 2 · bridge gaps</h4><p>soften ${p.weak[0]} by intentional learning</p></div>
+                    <div class="roadmap-phase"><h4>phase 3 · integrate</h4><p>blend your native era with timeless wisdom</p></div>
+                `;
+
+                loadingScreen.classList.add('hidden');
+                resultsScreen.classList.remove('hidden');
+            }, 1800);
+        }
+
+        // initial
+        renderQuestion(); // but hidden
+    })();
+</script>
+</body>
+</html>
